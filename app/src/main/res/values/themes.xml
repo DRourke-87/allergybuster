@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.AllergyBuster" parent="Theme.Material3.DayNight.NoActionBar" />
+    <!--
+        Platform theme used before Compose content renders. No MDC or AppCompat dependency needed
+        for a pure-Compose app; all visual theming is handled by AllergyBusterTheme in Compose.
+    -->
+    <style name="Theme.AllergyBuster" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

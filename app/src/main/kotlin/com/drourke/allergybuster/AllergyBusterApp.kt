@@ -6,7 +6,9 @@ import androidx.work.BackoffPolicy
 import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.drourke.allergybuster.data.local.db.AllergyDatabase
@@ -39,22 +41,27 @@ class AllergyBusterApp : Application(), Configuration.Provider {
     }
 
     private fun scheduleDailyFetch() {
-        val request = PeriodicWorkRequestBuilder<PollenFetchWorker>(24, TimeUnit.HOURS)
+        val wm = WorkManager.getInstance(this)
+        val networkConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        // Fetch immediately on each launch so the home screen is never empty.
+        // KEEP means we won't duplicate if a fetch is already queued or running.
+        val immediate = OneTimeWorkRequestBuilder<PollenFetchWorker>()
+            .setConstraints(networkConstraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
+            .build()
+        wm.enqueueUniqueWork("pollen_fetch_now", ExistingWorkPolicy.KEEP, immediate)
+
+        // Also schedule the daily 06:00 recurring fetch for background updates.
+        val periodic = PeriodicWorkRequestBuilder<PollenFetchWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(computeInitialDelayMs(targetHour = 6), TimeUnit.MILLISECONDS)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
+            .setConstraints(networkConstraints)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
             .addTag("daily_pollen_fetch")
             .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "daily_pollen_fetch",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
+        wm.enqueueUniquePeriodicWork("daily_pollen_fetch", ExistingPeriodicWorkPolicy.UPDATE, periodic)
     }
 
     private fun computeInitialDelayMs(targetHour: Int): Long {

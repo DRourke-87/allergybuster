@@ -1,15 +1,23 @@
 package com.drourke.allergybuster.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -31,69 +40,125 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     }
 
     Column(
-        modifier            = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Settings", style = MaterialTheme.typography.headlineSmall)
+        Column {
+            Text(
+                text  = "Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text  = "Personalise your allergy advisor",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    Text("Notification time", style = MaterialTheme.typography.bodyLarge)
+        // Notification time card
+        NatureCard {
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text("🌅  Morning alert time", style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        "%02d:00".format(sliderHour.toInt()),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        "Rise and shine, then check the pollen",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Slider(
-                    value         = sliderHour,
-                    onValueChange = { sliderHour = it },
-                    onValueChangeFinished = {
-                        viewModel.setNotificationTime(sliderHour.toInt(), 0)
-                    },
-                    valueRange = 5f..10f,
-                    steps      = 4
-                )
                 Text(
-                    "Choose when to receive your daily pollen advice (5–10 AM)",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text  = "%02d:00".format(sliderHour.toInt()),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
+            Spacer(Modifier.height(8.dp))
+            Slider(
+                value         = sliderHour,
+                onValueChange = { sliderHour = it },
+                onValueChangeFinished = {
+                    viewModel.setNotificationTime(sliderHour.toInt(), 0)
+                },
+                valueRange = 5f..10f,
+                steps      = 4,
+                colors     = SliderDefaults.colors(
+                    thumbColor            = MaterialTheme.colorScheme.primary,
+                    activeTrackColor      = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor    = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Location", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    "Cockermouth, Cumbria (CA13)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "Lat 54.66 · Lon −3.36",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        // Location card
+        NatureCard {
+            Text("🌍  Location", style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Cockermouth, Cumbria (CA13)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                "Latitude 54.66 · Longitude −3.36",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("How it learns", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    "Each time you tap a feedback button, AllergyBuster adjusts its sensitivity " +
-                    "for each pollen type based on whether today's forecast matched your experience. " +
-                    "After about 30 feedback events the predictions become personalised to you.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        // How it learns card
+        NatureCard {
+            Text("🌿  How it learns", style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Each time you tell us how you felt outdoors, AllergyBuster quietly adjusts " +
+                "its sensitivity for each pollen type — grass, birch, alder, and more. " +
+                "After around 30 days of feedback the recommendations become genuinely " +
+                "personalised to you, not just the weather.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Pollen sources card
+        NatureCard {
+            Text("🌐  Pollen data", style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Forecasts come from the Open-Meteo air quality API — " +
+                "free, no account needed, updated hourly. " +
+                "Your data never leaves your device.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun NatureCard(content: @Composable () -> Unit) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(20.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            content()
         }
     }
 }

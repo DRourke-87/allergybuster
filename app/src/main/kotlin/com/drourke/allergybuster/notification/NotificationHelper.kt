@@ -23,6 +23,7 @@ class NotificationHelper @Inject constructor(
         const val CHANNEL_PERSISTENT_ID = "pollen_status"
         const val NOTIF_ID              = 1001
         const val PERSISTENT_NOTIF_ID   = 1002
+        const val LOCATION_NOTIF_ID     = 1003
         const val ACTION_FINE           = "com.drourke.allergybuster.ACTION_FINE"
         const val ACTION_MILD           = "com.drourke.allergybuster.ACTION_MILD"
         const val ACTION_SEVERE         = "com.drourke.allergybuster.ACTION_SEVERE"
@@ -102,11 +103,46 @@ class NotificationHelper @Inject constructor(
             NotificationCompat.Builder(context, CHANNEL_PERSISTENT_ID)
                 .setSmallIcon(R.drawable.ic_pollen)
                 .setContentTitle("$emoji  ${recommendation.advice}")
-                .setContentText("Cockermouth · $topTwo")
+                .setContentText("${recommendation.locationName} · $topTwo")
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .setSilent(true)
                 .setContentIntent(openAppIntent())
+                .build()
+        )
+    }
+
+    /**
+     * Shown when the worker detects the user has moved >10 km from their last known location.
+     * Prompts them to re-rate how they feel in the new location.
+     */
+    fun postLocationChangedNotification(newLocationName: String, date: String) {
+        fun feedbackIntent(action: String): PendingIntent {
+            val intent = Intent(context, FeedbackActionReceiver::class.java).apply {
+                this.action = action
+                putExtra(EXTRA_DATE, date)
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                // Use offset to avoid colliding with daily notification request codes
+                (action + "_loc").hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
+        NotificationManagerCompat.from(context).notify(
+            LOCATION_NOTIF_ID,
+            NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_pollen)
+                .setContentTitle("📍 You've moved to $newLocationName")
+                .setContentText("How are your symptoms feeling today?")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setContentIntent(openAppIntent())
+                .addAction(0, "✅ Fine",    feedbackIntent(ACTION_FINE))
+                .addAction(0, "⚠️ Mild",   feedbackIntent(ACTION_MILD))
+                .addAction(0, "🔴 Severe", feedbackIntent(ACTION_SEVERE))
                 .build()
         )
     }

@@ -135,6 +135,11 @@ private fun HistoryDayRow(day: HistoryDay) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Text(
+                        "📍 ${day.recommendation.locationName}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

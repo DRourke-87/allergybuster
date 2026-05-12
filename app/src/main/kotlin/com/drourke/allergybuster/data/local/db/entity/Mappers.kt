@@ -23,7 +23,8 @@ fun RecommendationEntity.toDomain() = Recommendation(
     advice           = advice,
     topContributors  = Json.decodeFromString(topContributors),
     computedAt       = computedAt,
-    isStale          = isStale
+    isStale          = isStale,
+    locationName     = locationName
 )
 
 fun Recommendation.toEntity() = RecommendationEntity(
@@ -33,5 +34,6 @@ fun Recommendation.toEntity() = RecommendationEntity(
     advice          = advice,
     topContributors = Json.encodeToString(topContributors),
     computedAt      = computedAt,
-    isStale         = isStale
+    isStale         = isStale,
+    locationName    = locationName
 )

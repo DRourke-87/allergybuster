@@ -20,7 +20,7 @@ import com.drourke.allergybuster.data.local.db.entity.UserWeightsEntity
         DailyFeedbackEntity::class,
         UserWeightsEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

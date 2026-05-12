@@ -29,6 +29,8 @@ class FeedbackActionReceiver : BroadcastReceiver() {
             .build()
         WorkManager.getInstance(context).enqueue(work)
 
-        NotificationManagerCompat.from(context).cancel(NotificationHelper.NOTIF_ID)
+        val nm = NotificationManagerCompat.from(context)
+        nm.cancel(NotificationHelper.NOTIF_ID)
+        nm.cancel(NotificationHelper.LOCATION_NOTIF_ID)
     }
 }

@@ -12,7 +12,11 @@ import javax.inject.Singleton
 class ComputeRecommendationUseCase @Inject constructor(
     private val feedbackRepository: FeedbackRepository
 ) {
-    suspend operator fun invoke(pollen: DailyPollen, isStale: Boolean = false): Recommendation {
+    suspend operator fun invoke(
+        pollen: DailyPollen,
+        isStale: Boolean = false,
+        locationName: String = "Cockermouth"
+    ): Recommendation {
         val weights      = feedbackRepository.getWeights()
         val score        = RecommendationEngine.computeScore(pollen, weights)
         val level        = RecommendationEngine.scoreToLevel(score)
@@ -24,7 +28,8 @@ class ComputeRecommendationUseCase @Inject constructor(
             advice          = RecommendationEngine.levelToAdvice(level),
             topContributors = contributors,
             computedAt      = System.currentTimeMillis(),
-            isStale         = isStale
+            isStale         = isStale,
+            locationName    = locationName
         )
     }
 }

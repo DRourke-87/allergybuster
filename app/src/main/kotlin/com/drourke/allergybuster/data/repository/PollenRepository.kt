@@ -13,8 +13,6 @@ import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val LAT = 54.66
-private const val LON = -3.36
 private const val HOURLY_FIELDS =
     "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen"
 
@@ -24,10 +22,10 @@ class PollenRepository @Inject constructor(
     private val dao: PollenForecastDao
 ) {
     /** Fetches from network, stores all returned days, returns today's entry. Null on failure. */
-    suspend fun fetchAndStore(): DailyPollen? = try {
+    suspend fun fetchAndStore(lat: Double = 54.66, lon: Double = -3.36): DailyPollen? = try {
         val response = api.getAirQuality(
-            latitude     = LAT,
-            longitude    = LON,
+            latitude     = lat,
+            longitude    = lon,
             hourly       = HOURLY_FIELDS,
             forecastDays = 4,
             timezone     = "Europe/London"

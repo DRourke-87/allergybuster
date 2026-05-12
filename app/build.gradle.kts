@@ -51,6 +51,14 @@ ksp {
     arg("room.incremental", "true")
 }
 
+// appcompat 1.7.0 has a {str} ICU placeholder in widget_description that AAPT2 8.7.3 rejects;
+// force 1.6.1 for all configurations including transitive deps.
+configurations.all {
+    resolutionStrategy {
+        force("androidx.appcompat:appcompat:1.6.1")
+    }
+}
+
 dependencies {
     // Compose BOM
     implementation(platform(libs.compose.bom))

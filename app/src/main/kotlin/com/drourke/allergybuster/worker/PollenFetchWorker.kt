@@ -43,8 +43,11 @@ class PollenFetchWorker @AssistedInject constructor(
             // 4. Update Glance widget
             AllergyWidgetReceiver.updateWidget(applicationContext)
 
-            // 5. Post morning notification
+            // 5. Post morning alert (dismissable, with feedback actions)
             notificationHelper.postDailyNotification(recommendation)
+
+            // 6. Refresh the persistent status notification in the shade
+            notificationHelper.postPersistentNotification(recommendation)
 
             Result.success()
         } catch (e: Exception) {

@@ -51,7 +51,6 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     ) {
         AppHeader()
         RecommendationCard(recommendation)
-        LearningTreeCard(progress = learningProgress)
 
         if (recommendation != null) {
             PollenBreakdown(recommendation!!)
@@ -60,6 +59,8 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 onFeedback       = viewModel::submitFeedback
             )
         }
+
+        LearningTreeCard(progress = learningProgress)
     }
 }
 

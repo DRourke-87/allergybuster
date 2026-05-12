@@ -51,12 +51,12 @@ ksp {
     arg("room.incremental", "true")
 }
 
-// appcompat 1.7.0 has a {str} ICU placeholder in widget_description that AAPT2 8.7.3 rejects;
-// force 1.6.1 for all configurations including transitive deps.
+// All appcompat versions have a widget_description string containing {str} which AAPT2 in
+// AGP 8.7.3 rejects as an invalid escape at compile time — before our string override applies.
+// This app uses ComponentActivity + Material3 + Compose and has zero AppCompat API usage,
+// so we exclude appcompat from every configuration entirely.
 configurations.all {
-    resolutionStrategy {
-        force("androidx.appcompat:appcompat:1.6.1")
-    }
+    exclude(group = "androidx.appcompat", module = "appcompat")
 }
 
 dependencies {
@@ -106,7 +106,6 @@ dependencies {
 
     // Core
     implementation(libs.core.ktx)
-    implementation(libs.appcompat)
 
     // Debug
     debugImplementation(libs.compose.ui.tooling)

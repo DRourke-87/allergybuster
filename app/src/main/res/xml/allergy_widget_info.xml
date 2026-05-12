@@ -6,5 +6,5 @@
     android:targetCellWidth="2"
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
-    android:description="@string/widget_description"
+    android:description="@string/allergy_widget_description"
     android:widgetCategory="home_screen" />

@@ -69,7 +69,6 @@ datastore-preferences          = { group = "androidx.datastore",          name =
 
 # Core
 core-ktx                       = { group = "androidx.core",               name = "core-ktx",                             version = "1.16.0" }
-appcompat                      = { group = "androidx.appcompat",           name = "appcompat",                            version = "1.6.1" }
 
 # Testing
 junit                          = { group = "junit",                       name = "junit",                                version.ref = "junit" }

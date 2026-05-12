@@ -12,22 +12,31 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.drourke.allergybuster.data.local.db.AllergyDatabase
+import com.drourke.allergybuster.data.repository.RecommendationRepository
 import com.drourke.allergybuster.notification.NotificationHelper
 import com.drourke.allergybuster.worker.PollenFetchWorker
 import dagger.hilt.android.HiltAndroidApp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class AllergyBusterApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var notificationHelper: NotificationHelper
+    @Inject lateinit var recommendationRepository: RecommendationRepository
 
     /** Exposed so AllergyWidget can access DB without Hilt injection (Glance limitation). */
     @Inject lateinit var database: AllergyDatabase
+
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -38,6 +47,12 @@ class AllergyBusterApp : Application(), Configuration.Provider {
         super.onCreate()
         notificationHelper.createChannel()
         scheduleDailyFetch()
+        // Show persistent notification immediately if today's data is already cached,
+        // rather than waiting for the worker to complete its fetch.
+        appScope.launch {
+            recommendationRepository.getForDate(LocalDate.now().toString())
+                ?.let { notificationHelper.postPersistentNotification(it) }
+        }
     }
 
     private fun scheduleDailyFetch() {

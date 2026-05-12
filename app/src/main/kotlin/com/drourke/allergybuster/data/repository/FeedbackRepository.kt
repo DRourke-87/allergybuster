@@ -31,5 +31,7 @@ class FeedbackRepository @Inject constructor(
     fun observeRecentFeedback(limit: Int = 90): Flow<List<DailyFeedbackEntity>> =
         feedbackDao.observeRecent(limit)
 
+    fun observeFeedbackCount(): Flow<Int> = feedbackDao.observeFeedbackCount()
+
     fun observeWeights() = weightsDao.observe()
 }

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,6 +38,7 @@ class AppSettingsDataStore @Inject constructor(
         val LOCATION_LAT        = doublePreferencesKey("location_lat")
         val LOCATION_LON        = doublePreferencesKey("location_lon")
         val LOCATION_NAME       = stringPreferencesKey("location_name")
+        val LEARNING_STARTED_AT = longPreferencesKey("learning_started_at")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -48,6 +50,18 @@ class AppSettingsDataStore @Inject constructor(
             locationLon        = prefs[Keys.LOCATION_LON]        ?: -3.36,
             locationName       = prefs[Keys.LOCATION_NAME]       ?: "Cockermouth"
         )
+    }
+
+    val learningStartedAtFlow: Flow<Long> = context.dataStore.data.map { prefs ->
+        prefs[Keys.LEARNING_STARTED_AT] ?: 0L
+    }
+
+    suspend fun ensureLearningStarted() {
+        context.dataStore.edit { prefs ->
+            if (prefs[Keys.LEARNING_STARTED_AT] == null) {
+                prefs[Keys.LEARNING_STARTED_AT] = System.currentTimeMillis()
+            }
+        }
     }
 
     suspend fun setNotificationTime(hour: Int, minute: Int) {

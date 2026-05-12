@@ -37,8 +37,9 @@ import com.drourke.allergybuster.domain.model.Recommendation
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
-    val recommendation by viewModel.todayRecommendation.collectAsStateWithLifecycle()
-    val feedback       by viewModel.todayFeedback.collectAsStateWithLifecycle()
+    val recommendation   by viewModel.todayRecommendation.collectAsStateWithLifecycle()
+    val feedback         by viewModel.todayFeedback.collectAsStateWithLifecycle()
+    val learningProgress by viewModel.learningProgress.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -50,6 +51,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     ) {
         AppHeader()
         RecommendationCard(recommendation)
+        LearningTreeCard(progress = learningProgress)
 
         if (recommendation != null) {
             PollenBreakdown(recommendation!!)

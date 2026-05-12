@@ -18,4 +18,7 @@ interface DailyFeedbackDao {
 
     @Query("SELECT * FROM daily_feedback ORDER BY date DESC LIMIT :limit")
     fun observeRecent(limit: Int = 90): Flow<List<DailyFeedbackEntity>>
+
+    @Query("SELECT COUNT(*) FROM daily_feedback")
+    fun observeFeedbackCount(): Flow<Int>
 }

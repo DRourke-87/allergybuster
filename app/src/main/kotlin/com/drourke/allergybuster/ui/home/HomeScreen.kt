@@ -2,6 +2,7 @@ package com.drourke.allergybuster.ui.home
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedButtonDefaults
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -227,17 +227,11 @@ private fun FeedbackButton(
         onClick  = { onClick(severity) },
         enabled  = !disabled,
         modifier = modifier,
-        colors   = OutlinedButtonDefaults.outlinedButtonColors(
-            contentColor         = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-        ),
-        border = OutlinedButtonDefaults.outlinedButtonBorder(enabled = !disabled).let {
-            androidx.compose.foundation.BorderStroke(
-                width = 1.5.dp,
-                color = if (disabled) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-            )
-        }
+        border   = BorderStroke(
+            width = 1.5.dp,
+            color = if (disabled) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        )
     ) {
         Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
     }

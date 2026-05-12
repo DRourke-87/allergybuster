@@ -2,6 +2,7 @@ package com.drourke.allergybuster.widget
 
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
 class AllergyWidgetReceiver : GlanceAppWidgetReceiver() {
@@ -10,7 +11,10 @@ class AllergyWidgetReceiver : GlanceAppWidgetReceiver() {
 
     companion object {
         suspend fun updateWidget(context: Context) {
-            AllergyWidget().updateAll(context)
+            val manager = GlanceAppWidgetManager(context)
+            manager.getGlanceIds(AllergyWidget::class.java).forEach { id ->
+                AllergyWidget().update(context, id)
+            }
         }
     }
 }

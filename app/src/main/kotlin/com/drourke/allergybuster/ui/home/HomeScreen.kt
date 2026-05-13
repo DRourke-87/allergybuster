@@ -128,10 +128,16 @@ private fun RecommendationCard(recommendation: Recommendation?) {
                 textAlign  = TextAlign.Center,
                 color      = textColor
             )
-            if (recommendation != null && recommendation.level == 0) {
+            val subtitle = when (recommendation?.level) {
+                0 -> "Get out and enjoy the fresh air!"
+                1 -> "Hay fever sufferers may wish to take precautions"
+                2 -> "High risk for hay fever sufferers today"
+                else -> null
+            }
+            if (recommendation != null && subtitle != null) {
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text      = "Get out and enjoy the fresh air!",
+                    text      = subtitle,
                     style     = MaterialTheme.typography.bodyMedium,
                     color     = textColor.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -143,6 +149,15 @@ private fun RecommendationCard(recommendation: Recommendation?) {
                     text  = "Based on yesterday's data",
                     style = MaterialTheme.typography.bodySmall,
                     color = textColor.copy(alpha = 0.65f)
+                )
+            }
+            if (recommendation != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text      = "Pollen information only — not medical advice",
+                    style     = MaterialTheme.typography.bodySmall,
+                    color     = textColor.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center
                 )
             }
         }

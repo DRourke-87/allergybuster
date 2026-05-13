@@ -183,6 +183,20 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        // Medical disclaimer card
+        NatureCard {
+            Text("⚕️  Medical disclaimer", style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "AllergyBuster provides pollen risk information only and does not constitute " +
+                "medical advice. Consult a healthcare professional for personalised guidance " +
+                "on managing hay fever or allergies.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

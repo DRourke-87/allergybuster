@@ -48,9 +48,9 @@ private fun WidgetContent(rec: RecommendationEntity?) {
     }
     val emoji = when (rec?.level) { 0 -> "✅"; 1 -> "⚠️"; 2 -> "🟠"; else -> "⏳" }
     val short = when (rec?.level) {
-        0    -> "No antihistamine"
-        1    -> "Consider antihistamine"
-        2    -> "Take antihistamine"
+        0    -> "Low pollen"
+        1    -> "Moderate pollen"
+        2    -> "High pollen"
         else -> "Fetching…"
     }
 

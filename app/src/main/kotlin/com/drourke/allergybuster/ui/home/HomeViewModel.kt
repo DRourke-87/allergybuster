@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.drourke.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.drourke.allergybuster.data.local.db.entity.DailyFeedbackEntity
+import com.drourke.allergybuster.data.location.LocationProvider
 import com.drourke.allergybuster.data.repository.FeedbackRepository
 import com.drourke.allergybuster.data.repository.RecommendationRepository
 import com.drourke.allergybuster.domain.model.Recommendation
@@ -26,7 +27,8 @@ class HomeViewModel @Inject constructor(
     private val recommendationRepository: RecommendationRepository,
     private val feedbackRepository: FeedbackRepository,
     private val submitFeedback: SubmitFeedbackUseCase,
-    private val appSettings: AppSettingsDataStore
+    private val appSettings: AppSettingsDataStore,
+    private val locationProvider: LocationProvider
 ) : ViewModel() {
 
     private val today = LocalDate.now().toString()
@@ -62,7 +64,17 @@ class HomeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearningProgress.INITIAL)
 
     fun submitFeedback(severity: Int) {
-        viewModelScope.launch { submitFeedback(today, severity) }
+        viewModelScope.launch {
+            submitFeedback(today, severity)
+            // Backfill location if it wasn't resolved when the recommendation was first written.
+            val rec = todayRecommendation.value
+            if (rec != null && rec.locationName.isEmpty()) {
+                locationProvider.getLocation()?.let { loc ->
+                    appSettings.setLocation(loc.lat, loc.lon, loc.name)
+                    recommendationRepository.save(rec.copy(locationName = loc.name))
+                }
+            }
+        }
     }
 
     companion object {

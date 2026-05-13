@@ -52,10 +52,6 @@ class PollenFetchWorker @AssistedInject constructor(
                 Triple(settings.locationLat, settings.locationLon, settings.locationName)
             }
 
-            // Retry once if location hasn't been resolved yet so the history entry
-            // isn't written with a blank location name.
-            if (locationName.isEmpty() && runAttemptCount == 0) return Result.retry()
-
             // 2. Try to fetch fresh pollen data for resolved location
             val (pollen, isStale) = pollenRepository.fetchAndStore(lat, lon)?.let { it to false }
                 ?: pollenRepository.getCachedForDate(today)?.let { it to false }

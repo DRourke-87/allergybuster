@@ -48,10 +48,11 @@ class HomeViewModel @Inject constructor(
         feedbackRepository.observeFeedbackCount()
     ) { startedAt, feedbackCount ->
         val effectiveStart = if (startedAt == 0L) System.currentTimeMillis() else startedAt
-        val daysElapsed = min(
+        val rawDays = min(
             LEARNING_WINDOW_DAYS.toLong(),
             (System.currentTimeMillis() - effectiveStart) / MILLIS_PER_DAY
         ).toInt().coerceAtLeast(0)
+        val daysElapsed = maxOf(rawDays, feedbackCount).coerceAtMost(LEARNING_WINDOW_DAYS)
         LearningProgress.from(daysElapsed = daysElapsed, feedbackCount = feedbackCount)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearningProgress.INITIAL)
 

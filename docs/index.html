@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AllergyBuster — A pollen tracker that learns your allergies</title>
+  <meta name="description" content="Free pollen tracker that learns your allergies. Private. No account needed.">
+
+  <meta property="og:title" content="AllergyBuster">
+  <meta property="og:description" content="Free pollen tracker that learns your allergies. Private. No account needed.">
+  <meta property="og:image" content="images/feature_graphic.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" href="images/icon.png">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <nav class="nav">
+    <a class="brand" href="#top">
+      <img src="images/icon.png" alt="" width="36" height="36">
+      <span>AllergyBuster</span>
+    </a>
+    <a class="nav-cta" href="#beta">Join the beta</a>
+  </nav>
+
+  <div class="hero-inner" id="top">
+    <div class="hero-copy">
+      <h1>Know your pollen risk.<br>Every morning.</h1>
+      <p class="lede">
+        A free pollen tracker that <em>learns</em> your allergies.
+        Private. No account needed.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#beta">Join the closed beta</a>
+        <a class="btn btn-ghost" href="#how">How it works</a>
+      </div>
+      <p class="hero-meta">Free forever &middot; No ads &middot; No sign-up</p>
+    </div>
+
+    <div class="hero-art">
+      <img src="images/screenshot-forecast.png"
+           alt="AllergyBuster home screen showing today's pollen risk"
+           loading="eager">
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="section" id="how">
+    <div class="container">
+      <h2>How it works</h2>
+      <p class="section-lede">
+        AllergyBuster gives you a daily pollen forecast for your exact location &mdash;
+        and unlike generic weather apps, it actually learns how <em>you</em> respond to pollen over time.
+      </p>
+
+      <ol class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <h3>Check the forecast</h3>
+          <p>Open the app for a daily pollen risk score tailored to your location.</p>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <h3>Tell it how you felt</h3>
+          <p>One tap: Fine, Mild, or Bad. That&rsquo;s all the input it ever needs.</p>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <h3>It learns you</h3>
+          <p>Bayesian statistics quietly build a personal sensitivity model for grass, birch, alder and more.</p>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <h3>Advice gets personal</h3>
+          <p>After around 30 days, the recommendations are tailored to <em>your</em> triggers &mdash; not just the weather.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container two-col">
+      <div class="two-col-copy">
+        <h2>Learn your allergies in 30 days</h2>
+        <p>
+          Every day, AllergyBuster pairs the local pollen mix with how you felt outdoors.
+          After a month of one-tap check-ins it knows whether birch wrecks you, whether grass
+          is fine, and whether alder is the real culprit on those mystery-bad days.
+        </p>
+        <ul class="feature-list">
+          <li>Morning alert so you can plan your day before you head out</li>
+          <li>Status-bar card showing the current pollen level all day</li>
+          <li>Automatic location detection &mdash; always relevant</li>
+          <li>Forecasts powered by the Open-Meteo air-quality API</li>
+        </ul>
+      </div>
+      <div class="two-col-art">
+        <img src="images/screenshot-settings.png"
+             alt="AllergyBuster settings screen with morning alert, status-bar card and location"
+             loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <h2>Features</h2>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#127807;</div>
+          <h3>Daily pollen risk</h3>
+          <p>A clear risk score for your location, refreshed every morning.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#128276;</div>
+          <h3>Morning alert</h3>
+          <p>A single notification so you can plan around the day&rsquo;s pollen.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#128202;</div>
+          <h3>Status-bar card</h3>
+          <p>Glance at the current pollen level any time, no app open.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#129504;</div>
+          <h3>Learns your triggers</h3>
+          <p>Per-pollen sensitivity model, built on-device from your check-ins.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#128205;</div>
+          <h3>Automatic location</h3>
+          <p>Coarse location only &mdash; enough for the forecast, nothing more.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" aria-hidden="true">&#128274;</div>
+          <h3>Completely private</h3>
+          <p>Your check-ins, model and history never leave your device.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-privacy">
+    <div class="container">
+      <h2>Your privacy matters</h2>
+      <p class="section-lede">
+        AllergyBuster uses the Open-Meteo air-quality API for forecast data.
+        Everything else &mdash; your check-ins, your sensitivity model, your history &mdash;
+        stays on your device. Always.
+      </p>
+      <p class="fineprint">
+        <a href="privacy.html">Read the full privacy policy &rarr;</a>
+      </p>
+      <p class="fineprint disclaimer">
+        Pollen information only &mdash; not medical advice.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-cta" id="beta">
+    <div class="container container-narrow">
+      <h2>Join the closed beta</h2>
+      <p>
+        AllergyBuster is in closed beta on Google Play. Tap the button below to opt in
+        and install it from the Play Store. There&rsquo;s no waitlist &mdash; you&rsquo;re straight in.
+      </p>
+      <p class="cta-buttons">
+        <a class="btn btn-primary btn-large"
+           href="https://play.google.com/apps/testing/com.tarnlabs.allergybuster"
+           rel="noopener">
+          Opt in on Google Play
+        </a>
+      </p>
+      <p class="fineprint">
+        Android only. Requires Android 8.0 or newer.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p>&copy; Tarn Labs. AllergyBuster is published by Tarn Labs.</p>
+    <ul class="footer-links">
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><a href="https://github.com/DRourke-87/allergybuster" rel="noopener">GitHub</a></li>
+      <li><a href="https://github.com/DRourke-87/allergybuster/issues" rel="noopener">Report an issue</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>

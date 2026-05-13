@@ -4,6 +4,8 @@ build/
 local.properties
 *.jks
 *.keystore
+keystore.properties
+*.aab
 app/release/
 .DS_Store
 *.iml

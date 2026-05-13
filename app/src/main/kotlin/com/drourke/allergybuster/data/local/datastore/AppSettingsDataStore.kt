@@ -24,7 +24,7 @@ data class AppSettings(
     val onboardingDone: Boolean = false,
     val locationLat: Double = 54.66,
     val locationLon: Double = -3.36,
-    val locationName: String = "Cockermouth",
+    val locationName: String = "",
     val persistentNotifEnabled: Boolean = true
 )
 
@@ -50,7 +50,7 @@ class AppSettingsDataStore @Inject constructor(
             onboardingDone          = prefs[Keys.ONBOARDING_DONE]          ?: false,
             locationLat             = prefs[Keys.LOCATION_LAT]             ?: 54.66,
             locationLon             = prefs[Keys.LOCATION_LON]             ?: -3.36,
-            locationName            = prefs[Keys.LOCATION_NAME]            ?: "Cockermouth",
+            locationName            = prefs[Keys.LOCATION_NAME]            ?: "",
             persistentNotifEnabled  = prefs[Keys.PERSISTENT_NOTIF_ENABLED] ?: true
         )
     }

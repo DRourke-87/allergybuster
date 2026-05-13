@@ -12,5 +12,5 @@ data class RecommendationEntity(
     val topContributors: String,     // JSON-encoded List<String> via TypeConverter
     val computedAt: Long,
     val isStale: Boolean = false,
-    val locationName: String = "Cockermouth"
+    val locationName: String = ""
 )

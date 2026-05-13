@@ -15,7 +15,7 @@ class ComputeRecommendationUseCase @Inject constructor(
     suspend operator fun invoke(
         pollen: DailyPollen,
         isStale: Boolean = false,
-        locationName: String = "Cockermouth"
+        locationName: String = ""
     ): Recommendation {
         val weights      = feedbackRepository.getWeights()
         val score        = RecommendationEngine.computeScore(pollen, weights)

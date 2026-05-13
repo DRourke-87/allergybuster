@@ -8,5 +8,5 @@ data class Recommendation(
     val topContributors: List<String>,
     val computedAt: Long,
     val isStale: Boolean = false,    // true if based on yesterday's forecast
-    val locationName: String = "Cockermouth"
+    val locationName: String = ""
 )

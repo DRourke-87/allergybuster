@@ -36,14 +36,14 @@ class PollenFetchWorker @AssistedInject constructor(
             val settings = settingsDataStore.settingsFlow.first()
             val deviceLoc = locationProvider.getLocation()
             val (lat, lon, locationName) = if (deviceLoc != null) {
+                val isFirstRun = settings.locationName.isEmpty()
                 val distKm = locationProvider.distanceKm(
                     deviceLoc.lat, deviceLoc.lon,
                     settings.locationLat, settings.locationLon
                 )
-                if (distKm > 10f) {
-                    // Moved significantly — update stored location and prompt re-rating
+                if (isFirstRun || distKm > 10f) {
                     settingsDataStore.setLocation(deviceLoc.lat, deviceLoc.lon, deviceLoc.name)
-                    notificationHelper.postLocationChangedNotification(deviceLoc.name, today)
+                    if (!isFirstRun) notificationHelper.postLocationChangedNotification(deviceLoc.name, today)
                     Triple(deviceLoc.lat, deviceLoc.lon, deviceLoc.name)
                 } else {
                     Triple(settings.locationLat, settings.locationLon, settings.locationName)

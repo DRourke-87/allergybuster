@@ -24,7 +24,8 @@ data class AppSettings(
     val onboardingDone: Boolean = false,
     val locationLat: Double = 54.66,
     val locationLon: Double = -3.36,
-    val locationName: String = "Cockermouth"
+    val locationName: String = "Cockermouth",
+    val persistentNotifEnabled: Boolean = true
 )
 
 @Singleton
@@ -32,23 +33,25 @@ class AppSettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private object Keys {
-        val NOTIFICATION_HOUR   = intPreferencesKey("notification_hour")
-        val NOTIFICATION_MINUTE = intPreferencesKey("notification_minute")
-        val ONBOARDING_DONE     = booleanPreferencesKey("onboarding_done")
-        val LOCATION_LAT        = doublePreferencesKey("location_lat")
-        val LOCATION_LON        = doublePreferencesKey("location_lon")
-        val LOCATION_NAME       = stringPreferencesKey("location_name")
-        val LEARNING_STARTED_AT = longPreferencesKey("learning_started_at")
+        val NOTIFICATION_HOUR        = intPreferencesKey("notification_hour")
+        val NOTIFICATION_MINUTE      = intPreferencesKey("notification_minute")
+        val ONBOARDING_DONE          = booleanPreferencesKey("onboarding_done")
+        val LOCATION_LAT             = doublePreferencesKey("location_lat")
+        val LOCATION_LON             = doublePreferencesKey("location_lon")
+        val LOCATION_NAME            = stringPreferencesKey("location_name")
+        val LEARNING_STARTED_AT      = longPreferencesKey("learning_started_at")
+        val PERSISTENT_NOTIF_ENABLED = booleanPreferencesKey("persistent_notif_enabled")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
         AppSettings(
-            notificationHour   = prefs[Keys.NOTIFICATION_HOUR]   ?: 6,
-            notificationMinute = prefs[Keys.NOTIFICATION_MINUTE] ?: 0,
-            onboardingDone     = prefs[Keys.ONBOARDING_DONE]     ?: false,
-            locationLat        = prefs[Keys.LOCATION_LAT]        ?: 54.66,
-            locationLon        = prefs[Keys.LOCATION_LON]        ?: -3.36,
-            locationName       = prefs[Keys.LOCATION_NAME]       ?: "Cockermouth"
+            notificationHour        = prefs[Keys.NOTIFICATION_HOUR]        ?: 6,
+            notificationMinute      = prefs[Keys.NOTIFICATION_MINUTE]      ?: 0,
+            onboardingDone          = prefs[Keys.ONBOARDING_DONE]          ?: false,
+            locationLat             = prefs[Keys.LOCATION_LAT]             ?: 54.66,
+            locationLon             = prefs[Keys.LOCATION_LON]             ?: -3.36,
+            locationName            = prefs[Keys.LOCATION_NAME]            ?: "Cockermouth",
+            persistentNotifEnabled  = prefs[Keys.PERSISTENT_NOTIF_ENABLED] ?: true
         )
     }
 
@@ -56,9 +59,11 @@ class AppSettingsDataStore @Inject constructor(
         prefs[Keys.LEARNING_STARTED_AT] ?: 0L
     }
 
+    // Guards against both null (never set) and 0L (written by an older build).
     suspend fun ensureLearningStarted() {
         context.dataStore.edit { prefs ->
-            if (prefs[Keys.LEARNING_STARTED_AT] == null) {
+            val current = prefs[Keys.LEARNING_STARTED_AT]
+            if (current == null || current == 0L) {
                 prefs[Keys.LEARNING_STARTED_AT] = System.currentTimeMillis()
             }
         }
@@ -82,6 +87,12 @@ class AppSettingsDataStore @Inject constructor(
             prefs[Keys.LOCATION_LAT]  = lat
             prefs[Keys.LOCATION_LON]  = lon
             prefs[Keys.LOCATION_NAME] = name
+        }
+    }
+
+    suspend fun setPersistentNotifEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.PERSISTENT_NOTIF_ENABLED] = enabled
         }
     }
 }

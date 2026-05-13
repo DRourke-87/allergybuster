@@ -71,8 +71,10 @@ class PollenFetchWorker @AssistedInject constructor(
             // 6. Post morning alert (dismissable, with feedback actions)
             notificationHelper.postDailyNotification(recommendation)
 
-            // 7. Refresh the persistent status notification in the shade
-            notificationHelper.postPersistentNotification(recommendation)
+            // 7. Refresh the persistent status notification in the shade (if enabled)
+            if (settings.persistentNotifEnabled) {
+                notificationHelper.postPersistentNotification(recommendation)
+            }
 
             Result.success()
         } catch (e: Exception) {

@@ -1,6 +1,7 @@
 package com.drourke.allergybuster.ui
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,30 +11,55 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.drourke.allergybuster.data.local.datastore.AppSettingsDataStore
+import com.drourke.allergybuster.data.location.LocationProvider
 import com.drourke.allergybuster.ui.navigation.AppNavGraph
 import com.drourke.allergybuster.ui.navigation.BottomNavBar
 import com.drourke.allergybuster.ui.theme.AllergyBusterTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val notifPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { /* granted or denied — either way proceed */ }
+    @Inject lateinit var locationProvider: LocationProvider
+    @Inject lateinit var appSettings: AppSettingsDataStore
 
+    // After location is granted, immediately capture and store the device location.
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* granted or denied — worker falls back to stored location */ }
+    ) { granted ->
+        if (granted) {
+            lifecycleScope.launch {
+                locationProvider.getLocation()?.let { loc ->
+                    appSettings.setLocation(loc.lat, loc.lon, loc.name)
+                }
+            }
+        }
+    }
+
+    // Chain: once the notification permission dialog is dismissed, ask for location next.
+    private val notifPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        // Only prompt on a genuine first launch — skip on config changes / back-stack restores.
+        if (savedInstanceState == null) {
+            requestPermissionsIfNeeded()
         }
-        locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
 
         setContent {
             AllergyBusterTheme {
@@ -46,6 +72,27 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun requestPermissionsIfNeeded() {
+        val locationGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val notifGranted = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!notifGranted) {
+                // Location will be requested from inside the notif callback once this resolves.
+                notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+
+        if (!locationGranted) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
     }
 }

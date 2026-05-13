@@ -40,6 +40,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val recommendation   by viewModel.todayRecommendation.collectAsStateWithLifecycle()
     val feedback         by viewModel.todayFeedback.collectAsStateWithLifecycle()
     val learningProgress by viewModel.learningProgress.collectAsStateWithLifecycle()
+    val locationName     by viewModel.locationName.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -49,7 +50,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
             .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        AppHeader()
+        AppHeader(locationName)
         RecommendationCard(recommendation)
 
         if (recommendation != null) {
@@ -65,18 +66,20 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun AppHeader() {
+private fun AppHeader(locationName: String) {
     Column {
         Text(
             text  = "AllergyBuster",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary
         )
-        Text(
-            text  = "Cockermouth · Cumbria",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (locationName.isNotEmpty()) {
+            Text(
+                text  = locationName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

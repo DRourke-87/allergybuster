@@ -22,14 +22,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,10 +38,6 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var sliderHour by remember(settings.notificationHour) {
         mutableFloatStateOf(settings.notificationHour.toFloat())
-    }
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        viewModel.shareIntent.collect { intent -> context.startActivity(intent) }
     }
 
     Column(
@@ -153,14 +147,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Column(horizontalAlignment = Alignment.End) {
-                    TextButton(onClick = { viewModel.refreshLocation() }) {
-                        Text("Refresh", style = MaterialTheme.typography.labelMedium)
-                    }
-                    TextButton(onClick = { viewModel.exportLocationDebug() }) {
-                        Text("Export debug", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.outline)
-                    }
+                TextButton(onClick = { viewModel.refreshLocation() }) {
+                    Text("Refresh", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }

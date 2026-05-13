@@ -44,12 +44,7 @@ class LocationProvider @Inject constructor(
         Geocoder(context, Locale.getDefault())
             .getFromLocation(lat, lon, 1)
             ?.firstOrNull()
-            ?.let { addr ->
-                addr.locality
-                    ?: addr.featureName?.takeIf { it != addr.adminArea && it != addr.countryName }
-                    ?: addr.subAdminArea
-                    ?: addr.adminArea
-            }
+            ?.let { addr -> addr.locality ?: addr.subAdminArea ?: addr.adminArea }
             ?: "%.2f°, %.2f°".format(lat, lon)
     } catch (_: Exception) {
         "%.2f°, %.2f°".format(lat, lon)

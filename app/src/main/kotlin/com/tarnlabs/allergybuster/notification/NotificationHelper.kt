@@ -1,12 +1,17 @@
 package com.tarnlabs.allergybuster.notification
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.tarnlabs.allergybuster.R
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import com.tarnlabs.allergybuster.ui.MainActivity
@@ -30,6 +35,13 @@ class NotificationHelper @Inject constructor(
         const val EXTRA_DATE            = "extra_date"
     }
 
+    private fun canPostNotifications(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            context, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     fun createChannel() {
         val nm = context.getSystemService(NotificationManager::class.java)
 
@@ -51,6 +63,7 @@ class NotificationHelper @Inject constructor(
     }
 
     /** Dismissable morning alert with Fine / Mild / Severe feedback actions. */
+    @SuppressLint("MissingPermission") // guarded by canPostNotifications()
     fun postDailyNotification(recommendation: Recommendation) {
         val date = recommendation.date
 
@@ -70,6 +83,7 @@ class NotificationHelper @Inject constructor(
         val topTwo = recommendation.topContributors.take(2).joinToString(", ")
             .ifEmpty { "No significant pollen today" }
 
+        if (!canPostNotifications()) return
         NotificationManagerCompat.from(context).notify(
             NOTIF_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
@@ -91,6 +105,7 @@ class NotificationHelper @Inject constructor(
     }
 
     /** Ongoing silent notification — stays in the shade and updates with each fresh fetch. */
+    @SuppressLint("MissingPermission") // guarded by canPostNotifications()
     fun postPersistentNotification(recommendation: Recommendation) {
         val emoji = when (recommendation.level) {
             0 -> "🌿"; 1 -> "🌾"; 2 -> "🌻"; else -> "🌳"
@@ -98,6 +113,7 @@ class NotificationHelper @Inject constructor(
         val topTwo = recommendation.topContributors.take(2).joinToString(" · ")
             .ifEmpty { "No significant pollen" }
 
+        if (!canPostNotifications()) return
         NotificationManagerCompat.from(context).notify(
             PERSISTENT_NOTIF_ID,
             NotificationCompat.Builder(context, CHANNEL_PERSISTENT_ID)
@@ -116,6 +132,7 @@ class NotificationHelper @Inject constructor(
      * Shown when the worker detects the user has moved >10 km from their last known location.
      * Prompts them to re-rate how they feel in the new location.
      */
+    @SuppressLint("MissingPermission") // guarded by canPostNotifications()
     fun postLocationChangedNotification(newLocationName: String, date: String) {
         fun feedbackIntent(action: String): PendingIntent {
             val intent = Intent(context, FeedbackActionReceiver::class.java).apply {
@@ -131,6 +148,7 @@ class NotificationHelper @Inject constructor(
             )
         }
 
+        if (!canPostNotifications()) return
         NotificationManagerCompat.from(context).notify(
             LOCATION_NOTIF_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)

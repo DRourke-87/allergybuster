@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,23 +9,47 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+}
+fun signingValue(key: String): String? =
+    System.getenv(key)?.takeIf { it.isNotBlank() }
+        ?: keystoreProps.getProperty(key)?.takeIf { it.isNotBlank() }
+
 android {
-    namespace = "com.drourke.allergybuster"
+    namespace = "com.tarnlabs.allergybuster"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.drourke.allergybuster"
+        applicationId = "com.tarnlabs.allergybuster"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = System.getenv("ALLERGYBUSTER_VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePath = signingValue("ALLERGYBUSTER_KEYSTORE_PATH")
+            if (storePath != null) {
+                storeFile = file(storePath)
+                storePassword = signingValue("ALLERGYBUSTER_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("ALLERGYBUSTER_KEY_ALIAS")
+                keyPassword = signingValue("ALLERGYBUSTER_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -43,6 +69,12 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+
+    lint {
+        disable += "NullSafeMutableLiveData"
+        checkReleaseBuilds = true
+        abortOnError = true
     }
 }
 

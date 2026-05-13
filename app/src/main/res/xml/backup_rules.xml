@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto-backup configuration for Android 11 and below (API <= 30).
+  Android 12+ uses res/xml/data_extraction_rules.xml instead.
+
+  Backup is enabled for all app data (DataStore preferences + Room DB).
+  None of it is sensitive: approximate location, pollen history, feedback.
+-->
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+    <include domain="database" path="." />
+    <include domain="file" path="datastore/" />
+</full-backup-content>

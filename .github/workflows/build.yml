@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -29,6 +32,9 @@ jobs:
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
+
+      - name: Lint + unit tests
+        run: ./gradlew :app:lint :app:testDebugUnitTest --no-daemon
 
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon

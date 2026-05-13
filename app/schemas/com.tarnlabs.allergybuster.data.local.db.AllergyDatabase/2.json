@@ -1,0 +1,223 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "65c9a8533f6df26a8815c4adb8ab2244",
+    "entities": [
+      {
+        "tableName": "pollen_forecast",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `alderMax` REAL NOT NULL, `birchMax` REAL NOT NULL, `grassMax` REAL NOT NULL, `mugwortMax` REAL NOT NULL, `oliveMax` REAL NOT NULL, `ragweedMax` REAL NOT NULL, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alderMax",
+            "columnName": "alderMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birchMax",
+            "columnName": "birchMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grassMax",
+            "columnName": "grassMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mugwortMax",
+            "columnName": "mugwortMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oliveMax",
+            "columnName": "oliveMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ragweedMax",
+            "columnName": "ragweedMax",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fetchedAt",
+            "columnName": "fetchedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "recommendation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `level` INTEGER NOT NULL, `score` REAL NOT NULL, `advice` TEXT NOT NULL, `topContributors` TEXT NOT NULL, `computedAt` INTEGER NOT NULL, `isStale` INTEGER NOT NULL, `locationName` TEXT NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "score",
+            "columnName": "score",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "advice",
+            "columnName": "advice",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topContributors",
+            "columnName": "topContributors",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "computedAt",
+            "columnName": "computedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isStale",
+            "columnName": "isStale",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locationName",
+            "columnName": "locationName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "daily_feedback",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `severity` INTEGER NOT NULL, `recordedAt` INTEGER NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recordedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "user_weights",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `alderWeight` REAL NOT NULL, `birchWeight` REAL NOT NULL, `grassWeight` REAL NOT NULL, `mugwortWeight` REAL NOT NULL, `oliveWeight` REAL NOT NULL, `ragweedWeight` REAL NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alderWeight",
+            "columnName": "alderWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birchWeight",
+            "columnName": "birchWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grassWeight",
+            "columnName": "grassWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mugwortWeight",
+            "columnName": "mugwortWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oliveWeight",
+            "columnName": "oliveWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ragweedWeight",
+            "columnName": "ragweedWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '65c9a8533f6df26a8815c4adb8ab2244')"
+    ]
+  }
+}

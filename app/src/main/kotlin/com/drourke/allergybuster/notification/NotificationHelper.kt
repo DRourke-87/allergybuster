@@ -147,6 +147,10 @@ class NotificationHelper @Inject constructor(
         )
     }
 
+    fun cancelPersistentNotification() {
+        NotificationManagerCompat.from(context).cancel(PERSISTENT_NOTIF_ID)
+    }
+
     private fun openAppIntent(): PendingIntent = PendingIntent.getActivity(
         context, 0,
         Intent(context, MainActivity::class.java),

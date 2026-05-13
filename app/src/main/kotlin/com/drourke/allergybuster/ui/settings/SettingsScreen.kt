@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -100,6 +100,31 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             )
         }
 
+        // Persistent notification card
+        NatureCard {
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("🔔  Status bar card", style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Show a silent notification in your shade all day with the current pollen level.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked         = settings.persistentNotifEnabled,
+                    onCheckedChange = { viewModel.setPersistentNotifEnabled(it) },
+                    modifier        = Modifier.padding(start = 12.dp)
+                )
+            }
+        }
+
         // Location card
         NatureCard {
             Row(
@@ -134,9 +159,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(6.dp))
             Text(
-                "Each time you tell us how you felt outdoors, AllergyBuster quietly adjusts " +
-                "its sensitivity for each pollen type — grass, birch, alder, and more. " +
-                "After around 30 days of feedback the recommendations become genuinely " +
+                "Each time you tell us how you felt outdoors, AllergyBuster uses Bayesian " +
+                "statistics to quietly update its sensitivity model for each pollen type — " +
+                "grass, birch, alder, and more. Each check-in shifts the probability " +
+                "distribution, so the advice gets sharper with every data point. " +
+                "After around 30 days the recommendations become genuinely " +
                 "personalised to you, not just the weather.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

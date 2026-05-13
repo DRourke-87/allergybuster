@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
-import kotlin.math.min
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -48,10 +50,9 @@ class HomeViewModel @Inject constructor(
         feedbackRepository.observeFeedbackCount()
     ) { startedAt, feedbackCount ->
         val effectiveStart = if (startedAt == 0L) System.currentTimeMillis() else startedAt
-        val rawDays = min(
-            LEARNING_WINDOW_DAYS.toLong(),
-            (System.currentTimeMillis() - effectiveStart) / MILLIS_PER_DAY
-        ).toInt().coerceAtLeast(0)
+        val startDate = Instant.ofEpochMilli(effectiveStart).atZone(ZoneId.systemDefault()).toLocalDate()
+        val rawDays = ChronoUnit.DAYS.between(startDate, LocalDate.now())
+            .toInt().coerceIn(0, LEARNING_WINDOW_DAYS)
         val daysElapsed = maxOf(rawDays, feedbackCount).coerceAtMost(LEARNING_WINDOW_DAYS)
         LearningProgress.from(daysElapsed = daysElapsed, feedbackCount = feedbackCount)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearningProgress.INITIAL)
@@ -62,6 +63,5 @@ class HomeViewModel @Inject constructor(
 
     companion object {
         const val LEARNING_WINDOW_DAYS = 30
-        private const val MILLIS_PER_DAY = 24L * 60L * 60L * 1000L
     }
 }

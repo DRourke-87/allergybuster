@@ -46,12 +46,25 @@ class LocationProvider @Inject constructor(
             ?.firstOrNull()
             ?.let { addr ->
                 addr.locality
-                    ?: addr.featureName?.takeIf { it != addr.adminArea && it != addr.countryName }
+                    ?: townFromAddressLine(addr)
                     ?: addr.subAdminArea
                     ?: addr.adminArea
             }
             ?: "%.2f°, %.2f°".format(lat, lon)
     } catch (_: Exception) {
         "%.2f°, %.2f°".format(lat, lon)
+    }
+
+    // When locality is null the town still appears in the full address line as
+    // "[street], [Town] [Postcode], [Country]" — strip the postcode to get the town.
+    private fun townFromAddressLine(addr: android.location.Address): String? {
+        val postcode = addr.postalCode ?: return null
+        if (addr.maxAddressLineIndex < 0) return null
+        return addr.getAddressLine(0)
+            ?.split(", ")
+            ?.find { it.contains(postcode) }
+            ?.replace(postcode, "")
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
     }
 }

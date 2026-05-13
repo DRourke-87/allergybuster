@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy &mdash; AllergyBuster</title>
+  <meta name="description" content="What AllergyBuster collects, where it goes, and how to delete it.">
+  <link rel="icon" type="image/png" href="images/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<article class="doc">
+  <a class="doc-back" href="./">&larr; Back to AllergyBuster</a>
+
+  <h1>AllergyBuster &mdash; Privacy Policy</h1>
+  <p><strong>Effective date:</strong> <em>TBD &mdash; set on first publication</em></p>
+
+  <p>
+    AllergyBuster (&ldquo;the app&rdquo;) is published by Tarn Labs. This policy explains
+    exactly what data the app handles and where it goes.
+  </p>
+
+  <h2>What the app collects</h2>
+  <table>
+    <thead>
+      <tr><th>Data</th><th>When</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Approximate device location</strong> (city / town level &mdash; <code>ACCESS_COARSE_LOCATION</code>)</td>
+        <td>One-shot, only when you open the app or the home-screen widget refreshes</td>
+        <td>To look up the local pollen forecast</td>
+      </tr>
+      <tr>
+        <td><strong>Your daily symptom feedback</strong> (the levels you tap inside the app)</td>
+        <td>When you submit it</td>
+        <td>To learn which pollens affect you, on-device only</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The app does <strong>not</strong> collect:</p>
+  <ul>
+    <li>Names, email addresses, phone numbers, accounts, or identifiers of any kind</li>
+    <li>Precise GPS / fine location</li>
+    <li>Photos, contacts, microphone, or camera data</li>
+    <li>Advertising IDs (no ads SDK is bundled)</li>
+    <li>Crash reports or analytics (no analytics SDK is bundled)</li>
+  </ul>
+
+  <h2>Where the data goes</h2>
+  <ul>
+    <li>
+      <strong>Stays on your device:</strong> All symptom feedback, the on-device learning
+      model, and your last-known location are stored locally using Android&rsquo;s standard
+      <code>DataStore</code> and <code>Room</code> database. Nothing is sent to a Tarn Labs
+      server &mdash; Tarn Labs operates no backend for this app.
+    </li>
+    <li>
+      <strong>Sent to Open-Meteo:</strong> Your approximate latitude and longitude (rounded)
+      are sent over HTTPS to
+      <a href="https://air-quality-api.open-meteo.com/" rel="noopener">air-quality-api.open-meteo.com</a>
+      to fetch the pollen forecast. Open-Meteo is a non-commercial weather/air-quality
+      service; their privacy policy is at
+      <a href="https://open-meteo.com/en/terms#privacy" rel="noopener">open-meteo.com/en/terms#privacy</a>.
+    </li>
+    <li>
+      <strong>Android Auto-Backup:</strong> If you have Google&rsquo;s auto-backup enabled on
+      your device (Settings &rarr; Google &rarr; Backup), Android may include this app&rsquo;s
+      local data in your encrypted Google Drive backup. This is controlled by the OS,
+      not by AllergyBuster.
+    </li>
+  </ul>
+
+  <h2>Retention &amp; deletion</h2>
+  <ul>
+    <li>All in-app data is removed when you uninstall the app.</li>
+    <li>You can also clear data at any time via Settings &rarr; Apps &rarr; AllergyBuster &rarr; Storage &rarr; Clear data.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>
+    AllergyBuster is not directed at children under 13 and does not knowingly collect
+    data from them.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions or requests: open an issue at
+    <a href="https://github.com/DRourke-87/allergybuster/issues" rel="noopener">github.com/DRourke-87/allergybuster/issues</a>.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes materially, the in-app About screen will be updated and
+    the effective date above will change.
+  </p>
+</article>
+
+</body>
+</html>

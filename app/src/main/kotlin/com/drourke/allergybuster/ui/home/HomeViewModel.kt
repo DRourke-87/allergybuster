@@ -45,6 +45,10 @@ class HomeViewModel @Inject constructor(
         .map { list -> list.find { it.date == today } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val locationName: StateFlow<String> = appSettings.settingsFlow
+        .map { it.locationName }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
     val learningProgress: StateFlow<LearningProgress> = combine(
         appSettings.learningStartedAtFlow,
         feedbackRepository.observeFeedbackCount()

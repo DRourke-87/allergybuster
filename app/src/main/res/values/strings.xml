@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AllergyBuster</string>
-    <string name="allergy_widget_description">Shows today\'s pollen advice and antihistamine recommendation</string>
+    <string name="allergy_widget_description">Shows today\'s pollen risk level and main pollen sources</string>
 </resources>

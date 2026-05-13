@@ -26,9 +26,9 @@ object RecommendationEngine {
     }
 
     fun levelToAdvice(level: Int): String = when (level) {
-        0    -> "No antihistamine needed today"
-        1    -> "Consider taking antihistamine today"
-        else -> "Take antihistamine today"
+        0    -> "Low pollen risk today"
+        1    -> "Moderate pollen risk today"
+        else -> "High pollen risk today"
     }
 
     fun computeContributions(pollen: DailyPollen, weights: UserWeightsEntity): List<String> =

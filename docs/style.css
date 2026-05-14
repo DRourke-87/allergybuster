@@ -169,6 +169,12 @@ p { margin: 0 0 1em; }
 
 .btn-large { padding: 16px 30px; font-size: 1.05rem; }
 
+.btn-disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* ---------- Sections ---------- */
 
 .section {

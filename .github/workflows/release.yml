@@ -51,7 +51,6 @@ jobs:
           ALLERGYBUSTER_KEYSTORE_PASSWORD: ${{ secrets.ALLERGYBUSTER_KEYSTORE_PASSWORD }}
           ALLERGYBUSTER_KEY_ALIAS: ${{ secrets.ALLERGYBUSTER_KEY_ALIAS }}
           ALLERGYBUSTER_KEY_PASSWORD: ${{ secrets.ALLERGYBUSTER_KEY_PASSWORD }}
-          ALLERGYBUSTER_VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew :app:bundleRelease --no-daemon
 
       - name: Upload AAB artifact

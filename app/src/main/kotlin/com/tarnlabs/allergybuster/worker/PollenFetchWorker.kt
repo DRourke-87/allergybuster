@@ -8,6 +8,7 @@ import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.data.repository.PollenRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
+import com.tarnlabs.allergybuster.domain.usecase.ApplyDailyBayesianUseCase
 import com.tarnlabs.allergybuster.domain.usecase.ComputeRecommendationUseCase
 import com.tarnlabs.allergybuster.notification.NotificationHelper
 import com.tarnlabs.allergybuster.widget.AllergyWidgetReceiver
@@ -23,6 +24,7 @@ class PollenFetchWorker @AssistedInject constructor(
     private val pollenRepository: PollenRepository,
     private val recommendationRepository: RecommendationRepository,
     private val computeRecommendation: ComputeRecommendationUseCase,
+    private val applyDailyBayesian: ApplyDailyBayesianUseCase,
     private val notificationHelper: NotificationHelper,
     private val locationProvider: LocationProvider,
     private val settingsDataStore: AppSettingsDataStore
@@ -62,7 +64,8 @@ class PollenFetchWorker @AssistedInject constructor(
             val recommendation = computeRecommendation(pollen, isStale, locationName)
             recommendationRepository.save(recommendation)
 
-            // 4. Prune old forecasts
+            // 4. Apply any pending Bayesian updates for previous days, then prune old forecasts
+            applyDailyBayesian()
             pollenRepository.pruneOldForecasts()
 
             // 5. Update Glance widget

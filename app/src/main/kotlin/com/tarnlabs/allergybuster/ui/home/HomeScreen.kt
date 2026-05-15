@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,9 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tarnlabs.allergybuster.domain.model.PollenType
 import com.tarnlabs.allergybuster.domain.model.Recommendation
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
@@ -41,6 +49,22 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val feedback         by viewModel.todayFeedback.collectAsStateWithLifecycle()
     val learningProgress by viewModel.learningProgress.collectAsStateWithLifecycle()
     val locationName     by viewModel.locationName.collectAsStateWithLifecycle()
+    val recentForecasts  by viewModel.recentForecasts.collectAsStateWithLifecycle()
+    val userWeights      by viewModel.userWeights.collectAsStateWithLifecycle()
+
+    var selectedPollenType by rememberSaveable { mutableStateOf<String?>(null) }
+
+    if (selectedPollenType != null) {
+        val pollenType = PollenType.fromDisplayName(selectedPollenType!!)
+        if (pollenType != null) {
+            PollenDetailSheet(
+                pollenType      = pollenType,
+                recentForecasts = recentForecasts,
+                userWeights     = userWeights,
+                onDismiss       = { selectedPollenType = null }
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -54,9 +78,13 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         RecommendationCard(recommendation)
 
         if (recommendation != null) {
-            PollenBreakdown(recommendation!!)
+            PollenBreakdown(
+                recommendation   = recommendation!!,
+                onPollenChipClick = { name -> selectedPollenType = name }
+            )
             FeedbackSection(
-                alreadySubmitted = feedback != null,
+                selectedSeverity = feedback?.severity,
+                recordedAt       = feedback?.recordedAt,
                 onFeedback       = viewModel::submitFeedback
             )
         }
@@ -85,11 +113,10 @@ private fun AppHeader(locationName: String) {
 
 @Composable
 private fun RecommendationCard(recommendation: Recommendation?) {
-    // Level colour mapping — green leaf / warm sand / autumn rust
     val targetColor = when (recommendation?.level) {
-        0    -> MaterialTheme.colorScheme.primaryContainer    // spring leaf green
-        1    -> MaterialTheme.colorScheme.secondaryContainer  // warm sandy bark
-        2    -> MaterialTheme.colorScheme.errorContainer      // autumn rust/terracotta
+        0    -> MaterialTheme.colorScheme.primaryContainer
+        1    -> MaterialTheme.colorScheme.secondaryContainer
+        2    -> MaterialTheme.colorScheme.errorContainer
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
     val onTargetColor = when (recommendation?.level) {
@@ -102,18 +129,17 @@ private fun RecommendationCard(recommendation: Recommendation?) {
     val cardColor by animateColorAsState(targetColor,   animationSpec = tween(700), label = "card-bg")
     val textColor by animateColorAsState(onTargetColor, animationSpec = tween(700), label = "card-text")
 
-    // Nature-themed icons — celebrating the outdoors, not just alerting
     val icon = when (recommendation?.level) {
-        0    -> "🌿"   // thriving green sprig — you're good to go outside
-        1    -> "🌾"   // golden grass ear — some pollen around, be aware
-        2    -> "🌻"   // sunflower — lovely day but take your tablet!
-        else -> "🌳"   // tree — loading / awaiting forecast
+        0    -> "🌿"
+        1    -> "🌾"
+        2    -> "🌻"
+        else -> "🌳"
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(containerColor = cardColor),
-        shape    = RoundedCornerShape(24.dp),
+        modifier  = Modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(containerColor = cardColor),
+        shape     = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -168,7 +194,7 @@ private fun RecommendationCard(recommendation: Recommendation?) {
 }
 
 @Composable
-private fun PollenBreakdown(recommendation: Recommendation) {
+private fun PollenBreakdown(recommendation: Recommendation, onPollenChipClick: (String) -> Unit) {
     if (recommendation.topContributors.isEmpty()) return
 
     Column(
@@ -183,19 +209,25 @@ private fun PollenBreakdown(recommendation: Recommendation) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text  = "Tap any source for details, trends and cross-reactions",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+        )
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             recommendation.topContributors.take(4).forEach { contributor ->
                 SuggestionChip(
-                    onClick = {},
+                    onClick = { onPollenChipClick(contributor) },
                     label   = { Text(contributor) },
                     colors  = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor    = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor        = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor     = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     border  = SuggestionChipDefaults.suggestionChipBorder(
-                        enabled          = true,
-                        borderColor      = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        enabled     = true,
+                        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     )
                 )
             }
@@ -204,7 +236,11 @@ private fun PollenBreakdown(recommendation: Recommendation) {
 }
 
 @Composable
-private fun FeedbackSection(alreadySubmitted: Boolean, onFeedback: (Int) -> Unit) {
+private fun FeedbackSection(
+    selectedSeverity: Int?,
+    recordedAt: Long?,
+    onFeedback: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -213,11 +249,20 @@ private fun FeedbackSection(alreadySubmitted: Boolean, onFeedback: (Int) -> Unit
             .padding(16.dp)
     ) {
         Text(
-            text  = if (alreadySubmitted) "Thanks — we'll remember that!" else "How did you feel outdoors today?",
+            text  = "How are you feeling today?",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        if (!alreadySubmitted) {
+        if (selectedSeverity != null && recordedAt != null) {
+            val timeStr = Instant.ofEpochMilli(recordedAt)
+                .atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("HH:mm"))
+            Text(
+                text  = "Last updated at $timeStr — tap again to change",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        } else {
             Text(
                 text  = "Your feedback helps personalise your pollen sensitivity.",
                 style = MaterialTheme.typography.bodySmall,
@@ -229,9 +274,9 @@ private fun FeedbackSection(alreadySubmitted: Boolean, onFeedback: (Int) -> Unit
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            FeedbackButton("🌿 Fine",   0, alreadySubmitted, onFeedback, Modifier.weight(1f))
-            FeedbackButton("🌾 Mild",   1, alreadySubmitted, onFeedback, Modifier.weight(1f))
-            FeedbackButton("🌻 Bad",    2, alreadySubmitted, onFeedback, Modifier.weight(1f))
+            FeedbackButton("🌿 Fine", 0, selectedSeverity, onFeedback, Modifier.weight(1f))
+            FeedbackButton("🌾 Mild", 1, selectedSeverity, onFeedback, Modifier.weight(1f))
+            FeedbackButton("🌻 Bad",  2, selectedSeverity, onFeedback, Modifier.weight(1f))
         }
     }
 }
@@ -240,20 +285,30 @@ private fun FeedbackSection(alreadySubmitted: Boolean, onFeedback: (Int) -> Unit
 private fun FeedbackButton(
     label: String,
     severity: Int,
-    disabled: Boolean,
+    selectedSeverity: Int?,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedButton(
-        onClick  = { onClick(severity) },
-        enabled  = !disabled,
-        modifier = modifier,
-        border   = BorderStroke(
-            width = 1.5.dp,
-            color = if (disabled) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-        )
-    ) {
-        Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+    val isSelected = selectedSeverity == severity
+    if (isSelected) {
+        Button(
+            onClick  = { onClick(severity) },
+            modifier = modifier,
+            shape    = RoundedCornerShape(8.dp)
+        ) {
+            Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+        }
+    } else {
+        OutlinedButton(
+            onClick  = { onClick(severity) },
+            modifier = modifier,
+            shape    = RoundedCornerShape(8.dp),
+            border   = BorderStroke(
+                width = 1.5.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+            )
+        ) {
+            Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+        }
     }
 }

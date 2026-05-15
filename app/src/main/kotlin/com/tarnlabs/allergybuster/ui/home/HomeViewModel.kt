@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.local.db.entity.DailyFeedbackEntity
+import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
+import com.tarnlabs.allergybuster.data.repository.PollenRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
+import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import com.tarnlabs.allergybuster.domain.usecase.SubmitFeedbackUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +29,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val recommendationRepository: RecommendationRepository,
     private val feedbackRepository: FeedbackRepository,
+    private val pollenRepository: PollenRepository,
     private val submitFeedback: SubmitFeedbackUseCase,
     private val appSettings: AppSettingsDataStore,
     private val locationProvider: LocationProvider
@@ -46,6 +50,15 @@ class HomeViewModel @Inject constructor(
         .observeRecentFeedback(1)
         .map { list -> list.find { it.date == today } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val recentForecasts: StateFlow<List<DailyPollen>> = pollenRepository
+        .observeRecent(14)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val userWeights: StateFlow<UserWeightsEntity> = feedbackRepository
+        .observeWeights()
+        .map { it ?: UserWeightsEntity() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserWeightsEntity())
 
     val locationName: StateFlow<String> = appSettings.settingsFlow
         .map { it.locationName }

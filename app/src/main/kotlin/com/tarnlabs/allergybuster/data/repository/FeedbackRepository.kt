@@ -34,4 +34,10 @@ class FeedbackRepository @Inject constructor(
     fun observeFeedbackCount(): Flow<Int> = feedbackDao.observeFeedbackCount()
 
     fun observeWeights() = weightsDao.observe()
+
+    suspend fun getPendingBayesianUpdates(today: String): List<DailyFeedbackEntity> =
+        feedbackDao.getPendingBayesianUpdates(today)
+
+    suspend fun markBayesianApplied(date: String) =
+        feedbackDao.markBayesianApplied(date)
 }

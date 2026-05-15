@@ -21,4 +21,10 @@ interface DailyFeedbackDao {
 
     @Query("SELECT COUNT(*) FROM daily_feedback")
     fun observeFeedbackCount(): Flow<Int>
+
+    @Query("SELECT * FROM daily_feedback WHERE bayesianApplied = 0 AND date < :today ORDER BY date ASC")
+    suspend fun getPendingBayesianUpdates(today: String): List<DailyFeedbackEntity>
+
+    @Query("UPDATE daily_feedback SET bayesianApplied = 1 WHERE date = :date")
+    suspend fun markBayesianApplied(date: String)
 }

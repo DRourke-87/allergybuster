@@ -2,9 +2,9 @@ package com.tarnlabs.allergybuster.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tarnlabs.allergybuster.data.local.db.entity.DailyFeedbackEntity
 import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
+import com.tarnlabs.allergybuster.domain.model.DailyFeedback
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 data class HistoryDay(
     val recommendation: Recommendation,
-    val feedback: DailyFeedbackEntity?
+    val feedback: DailyFeedback?
 )
 
 @HiltViewModel

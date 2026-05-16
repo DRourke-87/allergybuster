@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS daily_feedback (
+    date TEXT NOT NULL PRIMARY KEY,
+    severity INTEGER NOT NULL,
+    recordedAt INTEGER NOT NULL,
+    bayesianApplied INTEGER NOT NULL DEFAULT 0
+);
+
+insertOrReplace:
+INSERT OR REPLACE INTO daily_feedback(date, severity, recordedAt, bayesianApplied)
+VALUES (:date, :severity, :recordedAt, :bayesianApplied);
+
+getForDate:
+SELECT * FROM daily_feedback WHERE date = :date;
+
+observeRecent:
+SELECT * FROM daily_feedback ORDER BY date DESC LIMIT :limit;
+
+observeCount:
+SELECT COUNT(*) FROM daily_feedback;
+
+getPendingBayesianUpdates:
+SELECT * FROM daily_feedback WHERE bayesianApplied = 0 AND date < :today ORDER BY date ASC;
+
+markBayesianApplied:
+UPDATE daily_feedback SET bayesianApplied = 1 WHERE date = :date;

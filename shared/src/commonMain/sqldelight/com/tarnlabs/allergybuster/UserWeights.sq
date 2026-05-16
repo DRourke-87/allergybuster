@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS user_weights (
+    id INTEGER NOT NULL PRIMARY KEY,
+    alderWeight REAL NOT NULL,
+    birchWeight REAL NOT NULL,
+    grassWeight REAL NOT NULL,
+    mugwortWeight REAL NOT NULL,
+    oliveWeight REAL NOT NULL,
+    ragweedWeight REAL NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+upsert:
+INSERT OR REPLACE INTO user_weights(id, alderWeight, birchWeight, grassWeight, mugwortWeight, oliveWeight, ragweedWeight, updatedAt)
+VALUES (1, :alderWeight, :birchWeight, :grassWeight, :mugwortWeight, :oliveWeight, :ragweedWeight, :updatedAt);
+
+get:
+SELECT * FROM user_weights WHERE id = 1;
+
+observe:
+SELECT * FROM user_weights WHERE id = 1;

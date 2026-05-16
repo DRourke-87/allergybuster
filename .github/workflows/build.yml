@@ -1,4 +1,4 @@
-name: Build APK
+name: Build
 
 on:
   push:
@@ -9,7 +9,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build:
+  # ── Android ───────────────────────────────────────────────────────────────
+  build-android:
     name: Build debug APK
     runs-on: ubuntu-latest
 
@@ -21,7 +22,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
           cache: gradle
 
       - name: Set up Android SDK
@@ -42,3 +43,39 @@ jobs:
           name: allergybuster-debug-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+  # ── iOS ───────────────────────────────────────────────────────────────────
+  build-ios:
+    name: Build iOS (Simulator)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+
+      - name: Cache Kotlin/Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build iOS app (simulator, no signing)
+        run: |
+          xcodebuild build \
+            -project iosApp/AllergyBuster.xcodeproj \
+            -scheme AllergyBuster \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet

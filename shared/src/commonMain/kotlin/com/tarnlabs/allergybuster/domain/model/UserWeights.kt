@@ -1,10 +1,16 @@
 package com.tarnlabs.allergybuster.domain.model
 
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
+data class UserWeights(
+    val alderWeight: Float   = 1.0f,
+    val birchWeight: Float   = 1.0f,
+    val grassWeight: Float   = 1.0f,
+    val mugwortWeight: Float = 1.0f,
+    val oliveWeight: Float   = 1.0f,
+    val ragweedWeight: Float = 1.0f,
+    val updatedAt: Long      = 0L
+)
 
-/** Extension helpers so engine logic stays decoupled from the Room entity shape. */
-
-fun UserWeightsEntity.getWeight(type: PollenType): Float = when (type) {
+fun UserWeights.getWeight(type: PollenType): Float = when (type) {
     PollenType.ALDER   -> alderWeight
     PollenType.BIRCH   -> birchWeight
     PollenType.GRASS   -> grassWeight
@@ -13,7 +19,7 @@ fun UserWeightsEntity.getWeight(type: PollenType): Float = when (type) {
     PollenType.RAGWEED -> ragweedWeight
 }
 
-fun UserWeightsEntity.withWeight(type: PollenType, value: Float): UserWeightsEntity = when (type) {
+fun UserWeights.withWeight(type: PollenType, value: Float): UserWeights = when (type) {
     PollenType.ALDER   -> copy(alderWeight   = value)
     PollenType.BIRCH   -> copy(birchWeight   = value)
     PollenType.GRASS   -> copy(grassWeight   = value)

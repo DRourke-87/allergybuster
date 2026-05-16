@@ -136,6 +136,9 @@ dependencies {
     // DataStore
     implementation(libs.datastore.preferences)
 
+    // Shared KMP module (domain models + engines)
+    implementation(project(":shared"))
+
     // Core
     implementation(libs.core.ktx)
 

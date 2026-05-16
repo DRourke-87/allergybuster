@@ -2,6 +2,7 @@ package com.tarnlabs.allergybuster.data.local.db.entity
 
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.Recommendation
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -36,4 +37,25 @@ fun Recommendation.toEntity() = RecommendationEntity(
     computedAt      = computedAt,
     isStale         = isStale,
     locationName    = locationName
+)
+
+fun UserWeightsEntity.toDomain() = UserWeights(
+    alderWeight   = alderWeight,
+    birchWeight   = birchWeight,
+    grassWeight   = grassWeight,
+    mugwortWeight = mugwortWeight,
+    oliveWeight   = oliveWeight,
+    ragweedWeight = ragweedWeight,
+    updatedAt     = updatedAt
+)
+
+fun UserWeights.toEntity() = UserWeightsEntity(
+    id            = 1,
+    alderWeight   = alderWeight,
+    birchWeight   = birchWeight,
+    grassWeight   = grassWeight,
+    mugwortWeight = mugwortWeight,
+    oliveWeight   = oliveWeight,
+    ragweedWeight = ragweedWeight,
+    updatedAt     = updatedAt
 )

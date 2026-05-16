@@ -1,8 +1,8 @@
 package com.tarnlabs.allergybuster.domain.engine
 
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.model.getWeight
 import com.tarnlabs.allergybuster.domain.model.withWeight
 
@@ -19,11 +19,11 @@ object BayesianUpdater {
      * (actualSeverity). Only updates types that were meaningfully present that day.
      */
     fun updateWeights(
-        current: UserWeightsEntity,
+        current: UserWeights,
         pollen: DailyPollen,
         actualSeverity: Int,     // 0=fine, 1=mild, 2=severe
         predictedLevel: Int      // 0=none, 1=consider, 2=take
-    ): UserWeightsEntity {
+    ): UserWeights {
         val error = (actualSeverity - predictedLevel).toFloat()
         var updated = current
 

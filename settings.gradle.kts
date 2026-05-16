@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AllergyBuster"
 include(":app")
+include(":shared")

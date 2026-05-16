@@ -1,9 +1,9 @@
 package com.tarnlabs.allergybuster.engine
 
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.domain.engine.BayesianUpdater
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.model.getWeight
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -11,7 +11,7 @@ import org.junit.Test
 
 class BayesianUpdaterTest {
 
-    private val defaultWeights = UserWeightsEntity()
+    private val defaultWeights = UserWeights()
     private val now = System.currentTimeMillis()
 
     private fun pollen(

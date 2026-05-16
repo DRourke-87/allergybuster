@@ -1,13 +1,13 @@
 package com.tarnlabs.allergybuster.domain.engine
 
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.model.getWeight
 
 object RecommendationEngine {
 
-    fun computeScore(pollen: DailyPollen, weights: UserWeightsEntity): Float {
+    fun computeScore(pollen: DailyPollen, weights: UserWeights): Float {
         var weightedSum = 0f
         var totalWeight = 0f
         for (type in PollenType.entries) {
@@ -31,7 +31,7 @@ object RecommendationEngine {
         else -> "High pollen risk today"
     }
 
-    fun computeContributions(pollen: DailyPollen, weights: UserWeightsEntity): List<String> =
+    fun computeContributions(pollen: DailyPollen, weights: UserWeights): List<String> =
         PollenType.entries
             .map { type -> type to type.normalise(pollen.getRaw(type)) * weights.getWeight(type) }
             .filter { (_, contribution) -> contribution > 0.05f }

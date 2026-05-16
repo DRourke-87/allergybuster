@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.local.db.entity.DailyFeedbackEntity
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
 import com.tarnlabs.allergybuster.data.repository.PollenRepository
@@ -55,10 +55,10 @@ class HomeViewModel @Inject constructor(
         .observeRecent(14)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val userWeights: StateFlow<UserWeightsEntity> = feedbackRepository
+    val userWeights: StateFlow<UserWeights> = feedbackRepository
         .observeWeights()
-        .map { it ?: UserWeightsEntity() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserWeightsEntity())
+        .map { it ?: UserWeights() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserWeights())
 
     val locationName: StateFlow<String> = appSettings.settingsFlow
         .map { it.locationName }

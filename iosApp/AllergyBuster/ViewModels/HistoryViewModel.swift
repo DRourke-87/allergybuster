@@ -14,6 +14,9 @@ final class HistoryViewModel: ObservableObject {
     private let feedbackRepo: FeedbackRepository
     private var tasks: [Task<Void, Never>] = []
 
+    private var latestRecs:      [Recommendation] = []
+    private var latestFeedbacks: [DailyFeedback]  = []
+
     init(container: ServiceContainer = .shared) {
         recRepo      = container.recommendationRepository
         feedbackRepo = container.feedbackRepository
@@ -22,16 +25,27 @@ final class HistoryViewModel: ObservableObject {
 
     private func startObserving() {
         tasks.append(Task {
-            for await (recs, feedbacks) in zip(
-                recRepo.observeRecent(limit: 90),
-                feedbackRepo.observeRecentFeedback(limit: 90)
-            ) {
-                let feedbackMap = Dictionary(feedbacks.map { ($0.date, $0) }, uniquingKeysWith: { $1 })
-                self.historyDays = recs.map { rec in
-                    HistoryDay(recommendation: rec, feedback: feedbackMap[rec.date])
-                }
+            for await recs in recRepo.observeRecent(limit: 90) {
+                self.latestRecs = recs
+                self.rebuild()
             }
         })
+        tasks.append(Task {
+            for await feedbacks in feedbackRepo.observeRecentFeedback(limit: 90) {
+                self.latestFeedbacks = feedbacks
+                self.rebuild()
+            }
+        })
+    }
+
+    private func rebuild() {
+        let feedbackMap = Dictionary(
+            latestFeedbacks.map { ($0.date, $0) },
+            uniquingKeysWith: { $1 }
+        )
+        historyDays = latestRecs.map { rec in
+            HistoryDay(recommendation: rec, feedback: feedbackMap[rec.date])
+        }
     }
 
     deinit { tasks.forEach { $0.cancel() } }

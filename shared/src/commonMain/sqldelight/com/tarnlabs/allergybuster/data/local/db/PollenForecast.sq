@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS pollen_forecast (
+    date TEXT NOT NULL PRIMARY KEY,
+    alderMax REAL NOT NULL,
+    birchMax REAL NOT NULL,
+    grassMax REAL NOT NULL,
+    mugwortMax REAL NOT NULL,
+    oliveMax REAL NOT NULL,
+    ragweedMax REAL NOT NULL,
+    fetchedAt INTEGER NOT NULL
+);
+
+insertOrReplace:
+INSERT OR REPLACE INTO pollen_forecast(date, alderMax, birchMax, grassMax, mugwortMax, oliveMax, ragweedMax, fetchedAt)
+VALUES (:date, :alderMax, :birchMax, :grassMax, :mugwortMax, :oliveMax, :ragweedMax, :fetchedAt);
+
+getForDate:
+SELECT * FROM pollen_forecast WHERE date = :date;
+
+getMostRecent:
+SELECT * FROM pollen_forecast ORDER BY date DESC LIMIT 1;
+
+observeRecent:
+SELECT * FROM pollen_forecast ORDER BY date DESC LIMIT :limit;
+
+deleteOlderThan:
+DELETE FROM pollen_forecast WHERE date < :cutoff;

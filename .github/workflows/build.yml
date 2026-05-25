@@ -1,4 +1,4 @@
-name: Build APK
+name: Build
 
 on:
   push:
@@ -9,7 +9,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build:
+  # ── Android ───────────────────────────────────────────────────────────────
+  build-android:
     name: Build debug APK
     runs-on: ubuntu-latest
 
@@ -21,7 +22,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
           cache: gradle
 
       - name: Set up Android SDK
@@ -42,3 +43,5 @@ jobs:
           name: allergybuster-debug-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+  # iOS builds are handled by Codemagic (see codemagic.yaml)

@@ -1,0 +1,117 @@
+definitions:
+  cache: &cache
+    cache_paths:
+      - ~/.konan
+      - ~/.gradle/caches
+      - ~/.gradle/wrapper
+
+workflows:
+
+  # ── Simulator build (runs on every push to main / feature branches) ───────
+  ios-simulator:
+    name: iOS Simulator Build
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: 'claude/*'
+          include: true
+    environment:
+      java: 17
+      xcode: latest
+    cache:
+      <<: *cache
+    scripts:
+      - name: Make Gradle wrapper executable
+        script: chmod +x gradlew
+
+      - name: Build iOS (Simulator, no signing)
+        script: |
+          xcodebuild build \
+            -project iosApp/AllergyBuster.xcodeproj \
+            -scheme AllergyBuster \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+
+  # ── App Store release (triggers on v*.*.* tags) ───────────────────────────
+  ios-release:
+    name: iOS App Store Release
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*.*.*'
+          include: true
+    environment:
+      java: 17
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.tarnlabs.allergybuster
+      groups:
+        - app_store_connect   # Set up in Codemagic UI — contains:
+                              #   APP_STORE_CONNECT_KEY_IDENTIFIER
+                              #   APP_STORE_CONNECT_ISSUER_ID
+                              #   APP_STORE_CONNECT_PRIVATE_KEY
+    cache:
+      <<: *cache
+    scripts:
+      - name: Make Gradle wrapper executable
+        script: chmod +x gradlew
+
+      - name: Initialise keychain
+        script: keychain initialize
+
+      - name: Fetch signing files — main app
+        script: |
+          app-store-connect fetch-signing-files com.tarnlabs.allergybuster \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Fetch signing files — widget
+        script: |
+          app-store-connect fetch-signing-files com.tarnlabs.allergybuster.widget \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+
+      - name: Apply provisioning profiles
+        script: xcode-project use-profiles
+
+      - name: Inject team ID into ExportOptions
+        script: sed -i '' "s/REPLACE_TEAM_ID/$CM_TEAM_ID/" iosApp/ExportOptions.plist
+
+      - name: Archive
+        script: |
+          xcodebuild archive \
+            -project iosApp/AllergyBuster.xcodeproj \
+            -scheme AllergyBuster \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/AllergyBuster.xcarchive" \
+            -quiet
+
+      - name: Export IPA
+        script: |
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/AllergyBuster.xcarchive" \
+            -exportPath   "$CM_EXPORT_DIR" \
+            -exportOptionsPlist iosApp/ExportOptions.plist \
+            -quiet
+
+    artifacts:
+      - $CM_EXPORT_DIR/AllergyBuster.ipa
+      - $CM_BUILD_DIR/AllergyBuster.xcarchive/dSYMs/**
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true

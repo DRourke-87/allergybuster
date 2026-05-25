@@ -11,7 +11,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.tarnlabs.allergybuster.data.local.db.AllergyDatabase
+import com.tarnlabs.allergybuster.data.local.db.AllergyBusterDatabase
+import com.tarnlabs.allergybuster.data.migration.RoomToSqlDelightMigrator
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
 import com.tarnlabs.allergybuster.notification.NotificationHelper
 import com.tarnlabs.allergybuster.worker.PollenFetchWorker
@@ -25,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @HiltAndroidApp
 class AllergyBusterApp : Application(), Configuration.Provider {
@@ -32,9 +34,10 @@ class AllergyBusterApp : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var notificationHelper: NotificationHelper
     @Inject lateinit var recommendationRepository: RecommendationRepository
+    @Inject lateinit var migrator: RoomToSqlDelightMigrator
 
     /** Exposed so AllergyWidget can access DB without Hilt injection (Glance limitation). */
-    @Inject lateinit var database: AllergyDatabase
+    @Inject lateinit var database: AllergyBusterDatabase
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -45,10 +48,11 @@ class AllergyBusterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // Block once on a fresh upgrade so workers, widget and persistent
+        // notification all see migrated data. Typical cost is tens of ms.
+        runBlocking { migrator.migrateIfNeeded() }
         notificationHelper.createChannel()
         scheduleDailyFetch()
-        // Show persistent notification immediately if today's data is already cached,
-        // rather than waiting for the worker to complete its fetch.
         appScope.launch {
             recommendationRepository.getForDate(LocalDate.now().toString())
                 ?.let { notificationHelper.postPersistentNotification(it) }
@@ -61,15 +65,12 @@ class AllergyBusterApp : Application(), Configuration.Provider {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        // Fetch immediately on each launch so the home screen is never empty.
-        // KEEP means we won't duplicate if a fetch is already queued or running.
         val immediate = OneTimeWorkRequestBuilder<PollenFetchWorker>()
             .setConstraints(networkConstraints)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
             .build()
         wm.enqueueUniqueWork("pollen_fetch_now", ExistingWorkPolicy.KEEP, immediate)
 
-        // Also schedule the daily 06:00 recurring fetch for background updates.
         val periodic = PeriodicWorkRequestBuilder<PollenFetchWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(computeInitialDelayMs(targetHour = 6), TimeUnit.MILLISECONDS)
             .setConstraints(networkConstraints)

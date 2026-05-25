@@ -1,15 +1,15 @@
 package com.tarnlabs.allergybuster.engine
 
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.domain.engine.RecommendationEngine
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecommendationEngineTest {
 
-    private val defaultWeights = UserWeightsEntity()
+    private val defaultWeights = UserWeights()
     private val now = System.currentTimeMillis()
 
     private fun pollen(
@@ -89,7 +89,7 @@ class RecommendationEngineTest {
 
     @Test fun `higher grass weight increases score proportionally`() {
         val highGrassWeights = defaultWeights.copy(grassWeight = 3.0f)
-        val base  = RecommendationEngine.computeScore(pollen(grass = 30f), defaultWeights)
+        val base    = RecommendationEngine.computeScore(pollen(grass = 30f), defaultWeights)
         val boosted = RecommendationEngine.computeScore(pollen(grass = 30f), highGrassWeights)
         assertTrue(boosted > base)
     }

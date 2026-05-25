@@ -3,14 +3,14 @@ package com.tarnlabs.allergybuster.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
-import com.tarnlabs.allergybuster.data.local.db.entity.DailyFeedbackEntity
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
 import com.tarnlabs.allergybuster.data.repository.PollenRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
+import com.tarnlabs.allergybuster.domain.model.DailyFeedback
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.Recommendation
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.usecase.SubmitFeedbackUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +46,7 @@ class HomeViewModel @Inject constructor(
         .map { list -> list.find { it.date == today } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val todayFeedback: StateFlow<DailyFeedbackEntity?> = feedbackRepository
+    val todayFeedback: StateFlow<DailyFeedback?> = feedbackRepository
         .observeRecentFeedback(1)
         .map { list -> list.find { it.date == today } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -55,10 +55,10 @@ class HomeViewModel @Inject constructor(
         .observeRecent(14)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val userWeights: StateFlow<UserWeightsEntity> = feedbackRepository
+    val userWeights: StateFlow<UserWeights> = feedbackRepository
         .observeWeights()
-        .map { it ?: UserWeightsEntity() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserWeightsEntity())
+        .map { it ?: UserWeights() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserWeights())
 
     val locationName: StateFlow<String> = appSettings.settingsFlow
         .map { it.locationName }
@@ -72,14 +72,13 @@ class HomeViewModel @Inject constructor(
         val startDate = Instant.ofEpochMilli(effectiveStart).atZone(ZoneId.systemDefault()).toLocalDate()
         val rawDays = ChronoUnit.DAYS.between(startDate, LocalDate.now())
             .toInt().coerceIn(0, LEARNING_WINDOW_DAYS)
-        val daysElapsed = maxOf(rawDays, feedbackCount).coerceAtMost(LEARNING_WINDOW_DAYS)
-        LearningProgress.from(daysElapsed = daysElapsed, feedbackCount = feedbackCount)
+        val daysElapsed = maxOf(rawDays, feedbackCount.toInt()).coerceAtMost(LEARNING_WINDOW_DAYS)
+        LearningProgress.from(daysElapsed = daysElapsed, feedbackCount = feedbackCount.toInt())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearningProgress.INITIAL)
 
     fun submitFeedback(severity: Int) {
         viewModelScope.launch {
             submitFeedback(today, severity)
-            // Backfill location if it wasn't resolved when the recommendation was first written.
             val rec = todayRecommendation.value
             if (rec != null && rec.locationName.isEmpty()) {
                 locationProvider.getLocation()?.let { loc ->

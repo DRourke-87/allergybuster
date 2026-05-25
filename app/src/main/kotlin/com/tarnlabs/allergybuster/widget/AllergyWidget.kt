@@ -22,24 +22,22 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.tarnlabs.allergybuster.AllergyBusterApp
-import com.tarnlabs.allergybuster.data.local.db.entity.RecommendationEntity
+import com.tarnlabs.allergybuster.domain.model.Recommendation
 import com.tarnlabs.allergybuster.ui.MainActivity
-import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
 class AllergyWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val db    = (context.applicationContext as AllergyBusterApp).database
+        val app   = context.applicationContext as AllergyBusterApp
         val today = LocalDate.now().toString()
-        val rec   = db.recommendationDao().getForDate(today)
-
+        val rec   = app.recommendationRepository.getForDate(today)
         provideContent { WidgetContent(rec) }
     }
 }
 
 @Composable
-private fun WidgetContent(rec: RecommendationEntity?) {
+private fun WidgetContent(rec: Recommendation?) {
     val bgColor = when (rec?.level) {
         0    -> GlanceTheme.colors.primaryContainer
         1    -> GlanceTheme.colors.secondaryContainer
@@ -54,10 +52,6 @@ private fun WidgetContent(rec: RecommendationEntity?) {
         else -> "Fetching…"
     }
 
-    val contributors: List<String> = try {
-        rec?.topContributors?.let { Json.decodeFromString(it) } ?: emptyList()
-    } catch (_: Exception) { emptyList() }
-
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -70,7 +64,7 @@ private fun WidgetContent(rec: RecommendationEntity?) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(emoji, style = TextStyle(fontSize = 28.sp))
             Text(short, style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold))
-            contributors.take(2).forEach { name ->
+            rec?.topContributors?.take(2)?.forEach { name ->
                 Text(name, style = TextStyle(fontSize = 11.sp))
             }
         }

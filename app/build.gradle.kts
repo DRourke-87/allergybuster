@@ -3,7 +3,6 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
@@ -25,8 +24,8 @@ android {
         applicationId = "com.tarnlabs.allergybuster"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -78,11 +77,6 @@ android {
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.incremental", "true")
-}
-
 // All appcompat versions have a widget_description string containing {str} which AAPT2 in
 // AGP 8.7.3 rejects as an invalid escape at compile time — before our string override applies.
 // This app uses ComponentActivity + Material3 + Compose and has zero AppCompat API usage,
@@ -110,11 +104,6 @@ dependencies {
     implementation(libs.hilt.work)
     ksp(libs.hilt.work.compiler)
 
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
@@ -122,19 +111,14 @@ dependencies {
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
 
-    // Networking
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.kotlinx.serialization)
-    implementation(platform(libs.okhttp.bom))
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
-    implementation(libs.kotlinx.serialization.json)
-
-    // Coroutines
+    // Coroutines (Android dispatcher)
     implementation(libs.kotlinx.coroutines.android)
 
-    // DataStore
+    // DataStore (Android-only settings)
     implementation(libs.datastore.preferences)
+
+    // Shared KMP module (domain, data, use cases)
+    implementation(project(":shared"))
 
     // Core
     implementation(libs.core.ktx)

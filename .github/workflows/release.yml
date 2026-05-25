@@ -1,4 +1,4 @@
-name: Release AAB
+name: Release
 
 on:
   push:
@@ -72,3 +72,5 @@ jobs:
       - name: Wipe keystore
         if: always()
         run: rm -f app/keystore.jks
+
+  # iOS release is handled by Codemagic (see codemagic.yaml)

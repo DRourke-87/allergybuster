@@ -23,22 +23,19 @@
 -keepclasseswithmembers class * { @kotlinx.serialization.* <methods>; }
 
 # ===========================================================================
-# Retrofit
+# Ktor
 # ===========================================================================
--keep class retrofit2.** { *; }
--keepclasseswithmembers class * { @retrofit2.http.* <methods>; }
--keepclassmembers,allowshrinking,allowobfuscation interface * {
-    @retrofit2.http.* <methods>;
-}
--dontwarn retrofit2.**
--dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
-
-# ===========================================================================
-# OkHttp / Okio
-# ===========================================================================
+-keep class io.ktor.** { *; }
+-dontwarn io.ktor.**
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn org.conscrypt.**
+
+# ===========================================================================
+# SQLDelight
+# ===========================================================================
+-keep class app.cash.sqldelight.** { *; }
+-dontwarn app.cash.sqldelight.**
 
 # ===========================================================================
 # Coroutines
@@ -49,13 +46,6 @@
     volatile <fields>;
 }
 -dontwarn kotlinx.coroutines.**
-
-# ===========================================================================
-# Room
-# ===========================================================================
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--dontwarn androidx.room.paging.**
 
 # ===========================================================================
 # Hilt / Dagger

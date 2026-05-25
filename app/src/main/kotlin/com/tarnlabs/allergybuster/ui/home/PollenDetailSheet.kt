@@ -28,9 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tarnlabs.allergybuster.data.local.db.entity.UserWeightsEntity
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
+import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.model.getWeight
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -41,7 +41,7 @@ import java.util.Locale
 fun PollenDetailSheet(
     pollenType: PollenType,
     recentForecasts: List<DailyPollen>,
-    userWeights: UserWeightsEntity,
+    userWeights: UserWeights,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(

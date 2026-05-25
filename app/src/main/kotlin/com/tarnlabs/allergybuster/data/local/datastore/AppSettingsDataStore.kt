@@ -41,6 +41,7 @@ class AppSettingsDataStore @Inject constructor(
         val LOCATION_NAME            = stringPreferencesKey("location_name")
         val LEARNING_STARTED_AT      = longPreferencesKey("learning_started_at")
         val PERSISTENT_NOTIF_ENABLED = booleanPreferencesKey("persistent_notif_enabled")
+        val ROOM_MIGRATION_DONE      = booleanPreferencesKey("room_migration_done")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -93,6 +94,16 @@ class AppSettingsDataStore @Inject constructor(
     suspend fun setPersistentNotifEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.PERSISTENT_NOTIF_ENABLED] = enabled
+        }
+    }
+
+    val roomMigrationDoneFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[Keys.ROOM_MIGRATION_DONE] ?: false
+    }
+
+    suspend fun markRoomMigrationDone() {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.ROOM_MIGRATION_DONE] = true
         }
     }
 }

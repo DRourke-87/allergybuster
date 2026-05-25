@@ -29,24 +29,9 @@ import java.time.LocalDate
 class AllergyWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val db    = (context.applicationContext as AllergyBusterApp).database
+        val app   = context.applicationContext as AllergyBusterApp
         val today = LocalDate.now().toString()
-        val rec   = db.recommendationQueries.getForDate(today).executeAsOneOrNull()
-            ?.let { row ->
-                Recommendation(
-                    date            = row.date,
-                    level           = row.level.toInt(),
-                    score           = row.score.toFloat(),
-                    advice          = row.advice,
-                    topContributors = try {
-                        kotlinx.serialization.json.Json.decodeFromString(row.topContributors)
-                    } catch (_: Exception) { emptyList() },
-                    computedAt      = row.computedAt,
-                    isStale         = row.isStale != 0L,
-                    locationName    = row.locationName
-                )
-            }
-
+        val rec   = app.recommendationRepository.getForDate(today)
         provideContent { WidgetContent(rec) }
     }
 }

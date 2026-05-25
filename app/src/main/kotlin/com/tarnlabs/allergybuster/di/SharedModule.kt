@@ -1,6 +1,7 @@
 package com.tarnlabs.allergybuster.di
 
 import android.content.Context
+import app.cash.sqldelight.db.SqlDriver
 import com.tarnlabs.allergybuster.data.local.db.AllergyBusterDatabase
 import com.tarnlabs.allergybuster.data.local.db.DatabaseDriverFactory
 import com.tarnlabs.allergybuster.data.remote.OpenMeteoApiClient
@@ -26,8 +27,12 @@ object SharedModule {
         DatabaseDriverFactory(ctx)
 
     @Provides @Singleton
-    fun provideDatabase(factory: DatabaseDriverFactory): AllergyBusterDatabase =
-        AllergyBusterDatabase(factory.createDriver())
+    fun provideSqlDriver(factory: DatabaseDriverFactory): SqlDriver =
+        factory.createDriver()
+
+    @Provides @Singleton
+    fun provideDatabase(driver: SqlDriver): AllergyBusterDatabase =
+        AllergyBusterDatabase(driver)
 
     @Provides @Singleton
     fun provideOpenMeteoApiClient() = OpenMeteoApiClient()

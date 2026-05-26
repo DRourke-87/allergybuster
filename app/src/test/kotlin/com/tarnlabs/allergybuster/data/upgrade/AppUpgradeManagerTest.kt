@@ -1,7 +1,6 @@
 package com.tarnlabs.allergybuster.data.upgrade
 
 import app.cash.sqldelight.Query
-import app.cash.sqldelight.TransactionWithoutReturn
 import app.cash.sqldelight.Transacter
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
@@ -11,7 +10,6 @@ import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.local.db.AllergyBusterDatabase
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -31,61 +29,23 @@ class AppUpgradeManagerTest {
         database = mockk()
         driver = RecordingSqlDriver()
         manager = AppUpgradeManager(settings, database, driver)
-
-        every {
-            database.transaction(any(), captureLambda<TransactionWithoutReturn.() -> Unit>())
-        } answers {
-            lambda<TransactionWithoutReturn.() -> Unit>().captured.invoke(mockk(relaxed = true))
-        }
     }
 
     @Test
-    fun `first launch on v4 with no stored version wipes cache (covers stuck v3 users)`() = runTest {
+    fun `fresh install never deletes data and records current version`() = runTest {
         coEvery { settings.getLastAppVersionCode() } returns null
 
-        val t = manager.detectTransition(currentVersionCode = 4)
-        manager.runUpgradeMigrations(t)
-
-        assertEquals(null, t.from)
-        assertEquals(4, t.to)
-        assertEquals(
-            listOf("DELETE FROM recommendation", "DELETE FROM pollen_forecast"),
-            driver.executedSql
-        )
-        coVerify { settings.clearRoomMigrationFlag() }
-        coVerify { settings.setLastAppVersionCode(4) }
-    }
-
-    @Test
-    fun `upgrade from v2 to v4 wipes cache and clears Room migration flag`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 2
-
-        val t = manager.detectTransition(currentVersionCode = 4)
-        manager.runUpgradeMigrations(t)
-
-        assertEquals(
-            listOf("DELETE FROM recommendation", "DELETE FROM pollen_forecast"),
-            driver.executedSql
-        )
-        coVerify { settings.clearRoomMigrationFlag() }
-        coVerify { settings.setLastAppVersionCode(4) }
-    }
-
-    @Test
-    fun `same version is a no-op`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 4
-
-        val t = manager.detectTransition(currentVersionCode = 4)
+        val t = manager.detectTransition(currentVersionCode = 5)
         manager.runUpgradeMigrations(t)
 
         assertEquals(emptyList<String>(), driver.executedSql)
+        coVerify { settings.setLastAppVersionCode(5) }
         coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
-        coVerify { settings.setLastAppVersionCode(4) }
     }
 
     @Test
-    fun `unknown future jump from v4 to v5 does not wipe but records version`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 4
+    fun `upgrade from v2 never deletes data`() = runTest {
+        coEvery { settings.getLastAppVersionCode() } returns 2
 
         val t = manager.detectTransition(currentVersionCode = 5)
         manager.runUpgradeMigrations(t)
@@ -96,24 +56,32 @@ class AppUpgradeManagerTest {
     }
 
     @Test
-    fun `wipe failure still bumps version to avoid infinite retry loop`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 2
-        driver.throwOnExecute = RuntimeException("boom")
+    fun `same version is a no-op`() = runTest {
+        coEvery { settings.getLastAppVersionCode() } returns 5
 
-        val t = manager.detectTransition(currentVersionCode = 4)
+        val t = manager.detectTransition(currentVersionCode = 5)
         manager.runUpgradeMigrations(t)
 
-        coVerify { settings.setLastAppVersionCode(4) }
+        assertEquals(emptyList<String>(), driver.executedSql)
+        coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
+        coVerify { settings.setLastAppVersionCode(5) }
+    }
+
+    @Test
+    fun `forward jump records new version without deleting`() = runTest {
+        coEvery { settings.getLastAppVersionCode() } returns 5
+
+        val t = manager.detectTransition(currentVersionCode = 6)
+        manager.runUpgradeMigrations(t)
+
+        assertEquals(emptyList<String>(), driver.executedSql)
+        coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
+        coVerify { settings.setLastAppVersionCode(6) }
     }
 }
 
-/**
- * Minimal SqlDriver fake that captures executed SQL. Manual implementation avoids
- * mockK's trouble with SQLDelight's QueryResult value class.
- */
 private class RecordingSqlDriver : SqlDriver {
     val executedSql = mutableListOf<String>()
-    var throwOnExecute: Throwable? = null
 
     override fun execute(
         identifier: Int?,
@@ -121,7 +89,6 @@ private class RecordingSqlDriver : SqlDriver {
         parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<Long> {
-        throwOnExecute?.let { throw it }
         executedSql += sql
         return QueryResult.Value(0L)
     }
@@ -134,11 +101,8 @@ private class RecordingSqlDriver : SqlDriver {
         binders: (SqlPreparedStatement.() -> Unit)?
     ): QueryResult<R> = error("not used")
 
-    override fun newTransaction(): QueryResult<Transacter.Transaction> =
-        error("not used")
-
+    override fun newTransaction(): QueryResult<Transacter.Transaction> = error("not used")
     override fun currentTransaction(): Transacter.Transaction? = null
-
     override fun addListener(vararg queryKeys: String, listener: Query.Listener) {}
     override fun removeListener(vararg queryKeys: String, listener: Query.Listener) {}
     override fun notifyListeners(vararg queryKeys: String) {}

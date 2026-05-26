@@ -11,17 +11,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Handles per-version-code upgrade cleanups. Runs BEFORE the Room→SQLDelight
- * migrator so a wipe pre-empts a (potentially broken) copy of stale rows.
+ * Records app-version transitions in DataStore so future schema changes can
+ * declare per-range cleanup hooks. Default policy is no-op — the Flow-level
+ * resilience in the repositories (per-row runCatching + .catch { emit(empty) })
+ * is sufficient to prevent the home screen from getting stuck, so we should
+ * NOT delete user data on upgrade.
  *
- * Default policy for unknown future jumps: no-op. Only known ranges declare
- * cleanups; data loss is worse than a rare stuck state.
+ * If a future schema change does need a cleanup, register it inside
+ * runUpgradeMigrations with a precise (from, to) range guard.
  */
 @Singleton
 class AppUpgradeManager @Inject constructor(
     private val settings: AppSettingsDataStore,
-    private val database: AllergyBusterDatabase,
-    private val driver: SqlDriver,
+    @Suppress("unused") private val database: AllergyBusterDatabase,
+    @Suppress("unused") private val driver: SqlDriver,
 ) {
     data class Transition(val from: Int?, val to: Int)
 
@@ -35,25 +38,14 @@ class AppUpgradeManager @Inject constructor(
 
     suspend fun runUpgradeMigrations(t: Transition): Unit = withContext(Dispatchers.IO) {
         try {
-            // `from == null` means LAST_APP_VERSION_CODE has never been written.
-            // Treat that as "pre-AppUpgradeManager" (anywhere up to and including
-            // versionCode 3) — those users may have a poisoned forecast cache from
-            // the 1.1→1.2 Room→SQLDelight jump and need the same cleanup.
-            val effectiveFrom = t.from ?: PRE_UPGRADE_MANAGER_VERSION
-            when {
-                effectiveFrom == t.to -> {
-                    // Same version — no-op.
-                }
-                effectiveFrom < FIRST_VERSION_WITH_UPGRADE_MANAGER &&
-                    t.to >= FIRST_VERSION_WITH_UPGRADE_MANAGER -> {
-                    Log.i(TAG, "Upgrade ${t.from}→${t.to}: wiping forecast cache, will re-run Room migration")
-                    wipeForecastCache()
-                    settings.clearRoomMigrationFlag()
-                }
-                else -> {
-                    Log.i(TAG, "Upgrade ${t.from}→${t.to}: no cleanup registered")
-                }
-            }
+            // No cleanups currently registered. The wipe that shipped in
+            // versionCode 4 was destructive (it dropped 90 days of recommendation
+            // history) and unnecessary: the repository-level Flow resilience
+            // already drops poisoned rows without taking the whole UI down.
+            //
+            // Future per-version cleanups can be added here with explicit
+            // (from, to) guards, but data loss must always be the last resort.
+            Log.i(TAG, "Upgrade ${t.from}→${t.to}: no cleanup registered")
         } catch (e: Throwable) {
             Log.e(TAG, "Upgrade migration failed; bumping version anyway to avoid loop", e)
         } finally {
@@ -61,19 +53,7 @@ class AppUpgradeManager @Inject constructor(
         }
     }
 
-    private fun wipeForecastCache() {
-        database.transaction {
-            driver.execute(null, "DELETE FROM recommendation", 0)
-            driver.execute(null, "DELETE FROM pollen_forecast", 0)
-        }
-    }
-
     companion object {
         private const val TAG = "AppUpgradeManager"
-
-        // versionCode 3 (1.2.0) was the last release without AppUpgradeManager.
-        // Users on null/anything ≤ 3 may have a poisoned forecast cache.
-        internal const val PRE_UPGRADE_MANAGER_VERSION = 3
-        internal const val FIRST_VERSION_WITH_UPGRADE_MANAGER = 4
     }
 }

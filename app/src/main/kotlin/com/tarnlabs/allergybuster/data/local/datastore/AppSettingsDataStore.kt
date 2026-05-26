@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,6 +43,7 @@ class AppSettingsDataStore @Inject constructor(
         val LEARNING_STARTED_AT      = longPreferencesKey("learning_started_at")
         val PERSISTENT_NOTIF_ENABLED = booleanPreferencesKey("persistent_notif_enabled")
         val ROOM_MIGRATION_DONE      = booleanPreferencesKey("room_migration_done")
+        val LAST_APP_VERSION_CODE    = intPreferencesKey("last_app_version_code")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -104,6 +106,21 @@ class AppSettingsDataStore @Inject constructor(
     suspend fun markRoomMigrationDone() {
         context.dataStore.edit { prefs ->
             prefs[Keys.ROOM_MIGRATION_DONE] = true
+        }
+    }
+
+    suspend fun clearRoomMigrationFlag() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(Keys.ROOM_MIGRATION_DONE)
+        }
+    }
+
+    suspend fun getLastAppVersionCode(): Int? =
+        context.dataStore.data.first()[Keys.LAST_APP_VERSION_CODE]
+
+    suspend fun setLastAppVersionCode(code: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.LAST_APP_VERSION_CODE] = code
         }
     }
 }

@@ -114,6 +114,9 @@ dependencies {
     // Coroutines (Android dispatcher)
     implementation(libs.kotlinx.coroutines.android)
 
+    // Serialization (used by RoomToSqlDelightMigrator to validate JSON during migration)
+    implementation(libs.kotlinx.serialization.json)
+
     // DataStore (Android-only settings)
     implementation(libs.datastore.preferences)
 

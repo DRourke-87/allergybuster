@@ -8,6 +8,7 @@ import com.tarnlabs.allergybuster.domain.model.DailyFeedback
 import com.tarnlabs.allergybuster.domain.model.UserWeights
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
 
@@ -44,18 +45,21 @@ class FeedbackRepository(private val db: AllergyBusterDatabase) {
         db.dailyFeedbackQueries.observeRecent(limit.toLong())
             .asFlow()
             .mapToList(Dispatchers.Default)
-            .map { rows -> rows.map { it.toDomain() } }
+            .map { rows -> rows.mapNotNull { runCatching { it.toDomain() }.getOrNull() } }
+            .catch { emit(emptyList()) }
 
     fun observeFeedbackCount(): Flow<Long> =
         db.dailyFeedbackQueries.observeCount()
             .asFlow()
             .mapToOne(Dispatchers.Default)
+            .catch { emit(0L) }
 
     fun observeWeights(): Flow<UserWeights?> =
         db.userWeightsQueries.observe()
             .asFlow()
             .mapToList(Dispatchers.Default)
-            .map { rows -> rows.firstOrNull()?.toDomain() }
+            .map { rows -> rows.firstOrNull()?.let { runCatching { it.toDomain() }.getOrNull() } }
+            .catch { emit(null) }
 
     suspend fun getPendingBayesianUpdates(today: String): List<DailyFeedback> =
         db.dailyFeedbackQueries.getPendingBayesianUpdates(today)

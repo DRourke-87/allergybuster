@@ -1,6 +1,7 @@
 package com.tarnlabs.allergybuster
 
 import android.app.Application
+import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.BackoffPolicy
 import androidx.work.Configuration
@@ -14,6 +15,7 @@ import androidx.work.WorkManager
 import com.tarnlabs.allergybuster.data.local.db.AllergyBusterDatabase
 import com.tarnlabs.allergybuster.data.migration.RoomToSqlDelightMigrator
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
+import com.tarnlabs.allergybuster.data.upgrade.AppUpgradeManager
 import com.tarnlabs.allergybuster.notification.NotificationHelper
 import com.tarnlabs.allergybuster.worker.PollenFetchWorker
 import dagger.hilt.android.HiltAndroidApp
@@ -28,12 +30,32 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+private val networkConstraints: Constraints = Constraints.Builder()
+    .setRequiredNetworkType(NetworkType.CONNECTED)
+    .build()
+
+/**
+ * Enqueues an immediate one-shot pollen fetch. Used at app startup (KEEP) and
+ * by the Retry button on the home screen (REPLACE to override the KEEP one).
+ */
+fun enqueueImmediatePollenFetch(
+    context: Context,
+    policy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP
+) {
+    val request = OneTimeWorkRequestBuilder<PollenFetchWorker>()
+        .setConstraints(networkConstraints)
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
+        .build()
+    WorkManager.getInstance(context).enqueueUniqueWork("pollen_fetch_now", policy, request)
+}
+
 @HiltAndroidApp
 class AllergyBusterApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var notificationHelper: NotificationHelper
     @Inject lateinit var recommendationRepository: RecommendationRepository
+    @Inject lateinit var upgradeManager: AppUpgradeManager
     @Inject lateinit var migrator: RoomToSqlDelightMigrator
 
     /** Exposed so AllergyWidget can access DB without Hilt injection (Glance limitation). */
@@ -50,7 +72,11 @@ class AllergyBusterApp : Application(), Configuration.Provider {
         super.onCreate()
         // Block once on a fresh upgrade so workers, widget and persistent
         // notification all see migrated data. Typical cost is tens of ms.
-        runBlocking { migrator.migrateIfNeeded() }
+        runBlocking {
+            val transition = upgradeManager.detectTransition()
+            upgradeManager.runUpgradeMigrations(transition)
+            migrator.migrateIfNeeded()
+        }
         notificationHelper.createChannel()
         scheduleDailyFetch()
         appScope.launch {
@@ -60,16 +86,7 @@ class AllergyBusterApp : Application(), Configuration.Provider {
     }
 
     private fun scheduleDailyFetch() {
-        val wm = WorkManager.getInstance(this)
-        val networkConstraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val immediate = OneTimeWorkRequestBuilder<PollenFetchWorker>()
-            .setConstraints(networkConstraints)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
-            .build()
-        wm.enqueueUniqueWork("pollen_fetch_now", ExistingWorkPolicy.KEEP, immediate)
+        enqueueImmediatePollenFetch(this, ExistingWorkPolicy.KEEP)
 
         val periodic = PeriodicWorkRequestBuilder<PollenFetchWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(computeInitialDelayMs(targetHour = 6), TimeUnit.MILLISECONDS)
@@ -77,7 +94,8 @@ class AllergyBusterApp : Application(), Configuration.Provider {
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
             .addTag("daily_pollen_fetch")
             .build()
-        wm.enqueueUniquePeriodicWork("daily_pollen_fetch", ExistingPeriodicWorkPolicy.UPDATE, periodic)
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork("daily_pollen_fetch", ExistingPeriodicWorkPolicy.UPDATE, periodic)
     }
 
     private fun computeInitialDelayMs(targetHour: Int): Long {

@@ -40,24 +40,27 @@ class AppUpgradeManagerTest {
     }
 
     @Test
-    fun `fresh install records current version and does not wipe`() = runTest {
+    fun `first launch on v4 with no stored version wipes cache (covers stuck v3 users)`() = runTest {
         coEvery { settings.getLastAppVersionCode() } returns null
 
-        val t = manager.detectTransition(currentVersionCode = 3)
+        val t = manager.detectTransition(currentVersionCode = 4)
         manager.runUpgradeMigrations(t)
 
         assertEquals(null, t.from)
-        assertEquals(3, t.to)
-        assertEquals(emptyList<String>(), driver.executedSql)
-        coVerify { settings.setLastAppVersionCode(3) }
-        coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
+        assertEquals(4, t.to)
+        assertEquals(
+            listOf("DELETE FROM recommendation", "DELETE FROM pollen_forecast"),
+            driver.executedSql
+        )
+        coVerify { settings.clearRoomMigrationFlag() }
+        coVerify { settings.setLastAppVersionCode(4) }
     }
 
     @Test
-    fun `2 to 3 transition wipes cache tables and clears Room migration flag`() = runTest {
+    fun `upgrade from v2 to v4 wipes cache and clears Room migration flag`() = runTest {
         coEvery { settings.getLastAppVersionCode() } returns 2
 
-        val t = manager.detectTransition(currentVersionCode = 3)
+        val t = manager.detectTransition(currentVersionCode = 4)
         manager.runUpgradeMigrations(t)
 
         assertEquals(
@@ -65,24 +68,12 @@ class AppUpgradeManagerTest {
             driver.executedSql
         )
         coVerify { settings.clearRoomMigrationFlag() }
-        coVerify { settings.setLastAppVersionCode(3) }
+        coVerify { settings.setLastAppVersionCode(4) }
     }
 
     @Test
     fun `same version is a no-op`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 3
-
-        val t = manager.detectTransition(currentVersionCode = 3)
-        manager.runUpgradeMigrations(t)
-
-        assertEquals(emptyList<String>(), driver.executedSql)
-        coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
-        coVerify { settings.setLastAppVersionCode(3) }
-    }
-
-    @Test
-    fun `unknown future jump does not wipe but records version`() = runTest {
-        coEvery { settings.getLastAppVersionCode() } returns 3
+        coEvery { settings.getLastAppVersionCode() } returns 4
 
         val t = manager.detectTransition(currentVersionCode = 4)
         manager.runUpgradeMigrations(t)
@@ -93,14 +84,26 @@ class AppUpgradeManagerTest {
     }
 
     @Test
+    fun `unknown future jump from v4 to v5 does not wipe but records version`() = runTest {
+        coEvery { settings.getLastAppVersionCode() } returns 4
+
+        val t = manager.detectTransition(currentVersionCode = 5)
+        manager.runUpgradeMigrations(t)
+
+        assertEquals(emptyList<String>(), driver.executedSql)
+        coVerify(exactly = 0) { settings.clearRoomMigrationFlag() }
+        coVerify { settings.setLastAppVersionCode(5) }
+    }
+
+    @Test
     fun `wipe failure still bumps version to avoid infinite retry loop`() = runTest {
         coEvery { settings.getLastAppVersionCode() } returns 2
         driver.throwOnExecute = RuntimeException("boom")
 
-        val t = manager.detectTransition(currentVersionCode = 3)
+        val t = manager.detectTransition(currentVersionCode = 4)
         manager.runUpgradeMigrations(t)
 
-        coVerify { settings.setLastAppVersionCode(3) }
+        coVerify { settings.setLastAppVersionCode(4) }
     }
 }
 

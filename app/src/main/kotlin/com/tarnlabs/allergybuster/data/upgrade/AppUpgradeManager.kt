@@ -35,14 +35,17 @@ class AppUpgradeManager @Inject constructor(
 
     suspend fun runUpgradeMigrations(t: Transition): Unit = withContext(Dispatchers.IO) {
         try {
+            // `from == null` means LAST_APP_VERSION_CODE has never been written.
+            // Treat that as "pre-AppUpgradeManager" (anywhere up to and including
+            // versionCode 3) — those users may have a poisoned forecast cache from
+            // the 1.1→1.2 Room→SQLDelight jump and need the same cleanup.
+            val effectiveFrom = t.from ?: PRE_UPGRADE_MANAGER_VERSION
             when {
-                t.from == null -> {
-                    Log.i(TAG, "Fresh install — recording version ${t.to}")
-                }
-                t.from == t.to -> {
+                effectiveFrom == t.to -> {
                     // Same version — no-op.
                 }
-                t.from in 1..2 && t.to >= 3 -> {
+                effectiveFrom < FIRST_VERSION_WITH_UPGRADE_MANAGER &&
+                    t.to >= FIRST_VERSION_WITH_UPGRADE_MANAGER -> {
                     Log.i(TAG, "Upgrade ${t.from}→${t.to}: wiping forecast cache, will re-run Room migration")
                     wipeForecastCache()
                     settings.clearRoomMigrationFlag()
@@ -67,5 +70,10 @@ class AppUpgradeManager @Inject constructor(
 
     companion object {
         private const val TAG = "AppUpgradeManager"
+
+        // versionCode 3 (1.2.0) was the last release without AppUpgradeManager.
+        // Users on null/anything ≤ 3 may have a poisoned forecast cache.
+        internal const val PRE_UPGRADE_MANAGER_VERSION = 3
+        internal const val FIRST_VERSION_WITH_UPGRADE_MANAGER = 4
     }
 }

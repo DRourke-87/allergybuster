@@ -24,9 +24,10 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
@@ -55,11 +56,12 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val userWeights      by viewModel.userWeights.collectAsStateWithLifecycle()
     val isRetrying       by viewModel.isRetrying.collectAsStateWithLifecycle()
 
-    val showRetry by produceState(initialValue = false, recommendation) {
-        value = false
+    var showRetry by remember { mutableStateOf(false) }
+    LaunchedEffect(recommendation) {
+        showRetry = false
         if (recommendation == null) {
             delay(30_000)
-            value = true
+            showRetry = true
         }
     }
 

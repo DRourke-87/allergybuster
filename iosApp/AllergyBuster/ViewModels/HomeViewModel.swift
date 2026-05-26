@@ -27,8 +27,11 @@ final class HomeViewModel: ObservableObject {
     @Published var todayFeedback: DailyFeedback?        = nil
     @Published var recentForecasts: [DailyPollen]       = []
     @Published var learningProgress: LearningProgressState = .initial
+    @Published var showRetry: Bool  = false
+    @Published var isRetrying: Bool = false
 
     private static let learningWindow = 30
+    private static let stuckTimeoutNs: UInt64 = 30_000_000_000
     private let today: String
 
     private let pollenRepo:      PollenRepository
@@ -36,6 +39,7 @@ final class HomeViewModel: ObservableObject {
     private let recRepo:         RecommendationRepository
     private let submitUseCase:   SubmitFeedbackUseCase
     private var tasks: [Task<Void, Never>] = []
+    private var stuckTimer: Task<Void, Never>?
 
     init(container: ServiceContainer = .shared) {
         let fmt = DateFormatter()
@@ -59,7 +63,9 @@ final class HomeViewModel: ObservableObject {
     private func startObserving() {
         tasks.append(Task {
             for await recs in recRepo.observeRecent(limit: 1) {
-                self.todayRecommendation = recs.first(where: { $0.date == self.today })
+                let rec = recs.first(where: { $0.date == self.today })
+                self.todayRecommendation = rec
+                self.updateStuckTimer(recommendation: rec)
             }
         })
         tasks.append(Task {
@@ -87,9 +93,36 @@ final class HomeViewModel: ObservableObject {
         })
     }
 
-    deinit { tasks.forEach { $0.cancel() } }
+    deinit {
+        tasks.forEach { $0.cancel() }
+        stuckTimer?.cancel()
+    }
 
     func submitFeedback(severity: Int) {
         Task { try? await submitUseCase.invoke(date: today, severity: Int32(severity)) }
+    }
+
+    func retryForecastFetch() {
+        guard !isRetrying else { return }
+        isRetrying = true
+        Task {
+            await BackgroundRefreshScheduler.runImmediateFetch()
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            await MainActor.run { self.isRetrying = false }
+        }
+    }
+
+    private func updateStuckTimer(recommendation: Recommendation?) {
+        stuckTimer?.cancel()
+        if recommendation != nil {
+            showRetry = false
+            return
+        }
+        showRetry = false
+        stuckTimer = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: Self.stuckTimeoutNs)
+            if Task.isCancelled { return }
+            await MainActor.run { self?.showRetry = true }
+        }
     }
 }

@@ -26,8 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +53,15 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val locationName     by viewModel.locationName.collectAsStateWithLifecycle()
     val recentForecasts  by viewModel.recentForecasts.collectAsStateWithLifecycle()
     val userWeights      by viewModel.userWeights.collectAsStateWithLifecycle()
+    val isRetrying       by viewModel.isRetrying.collectAsStateWithLifecycle()
+
+    val showRetry by produceState(initialValue = false, recommendation) {
+        value = false
+        if (recommendation == null) {
+            delay(30_000)
+            value = true
+        }
+    }
 
     var selectedPollenType by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -75,7 +86,12 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         AppHeader(locationName)
-        RecommendationCard(recommendation)
+        RecommendationCard(
+            recommendation = recommendation,
+            showRetry      = showRetry,
+            isRetrying     = isRetrying,
+            onRetry        = viewModel::retryForecastFetch
+        )
 
         if (recommendation != null) {
             PollenBreakdown(
@@ -112,7 +128,12 @@ private fun AppHeader(locationName: String) {
 }
 
 @Composable
-private fun RecommendationCard(recommendation: Recommendation?) {
+private fun RecommendationCard(
+    recommendation: Recommendation?,
+    showRetry: Boolean = false,
+    isRetrying: Boolean = false,
+    onRetry: () -> Unit = {}
+) {
     val targetColor = when (recommendation?.level) {
         0    -> MaterialTheme.colorScheme.primaryContainer
         1    -> MaterialTheme.colorScheme.secondaryContainer
@@ -150,13 +171,28 @@ private fun RecommendationCard(recommendation: Recommendation?) {
         ) {
             Text(text = icon, fontSize = 56.sp)
             Spacer(Modifier.height(12.dp))
+            val loadingText = if (showRetry) {
+                "Still fetching — tap retry if this seems stuck."
+            } else {
+                "Fetching today's forecast…"
+            }
             Text(
-                text       = recommendation?.advice ?: "Fetching today's forecast…",
+                text       = recommendation?.advice ?: loadingText,
                 style      = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign  = TextAlign.Center,
                 color      = textColor
             )
+            if (recommendation == null && showRetry) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onRetry,
+                    enabled = !isRetrying,
+                    shape   = RoundedCornerShape(8.dp)
+                ) {
+                    Text(if (isRetrying) "Retrying…" else "Retry")
+                }
+            }
             val subtitle = when (recommendation?.level) {
                 0 -> "Get out and enjoy the fresh air!"
                 1 -> "Hay fever sufferers may wish to take precautions"

@@ -24,8 +24,8 @@ android {
         applicationId = "com.tarnlabs.allergybuster"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -113,6 +113,9 @@ dependencies {
 
     // Coroutines (Android dispatcher)
     implementation(libs.kotlinx.coroutines.android)
+
+    // Serialization (used by RoomToSqlDelightMigrator to validate JSON during migration)
+    implementation(libs.kotlinx.serialization.json)
 
     // DataStore (Android-only settings)
     implementation(libs.datastore.preferences)

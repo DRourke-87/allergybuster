@@ -1,7 +1,9 @@
 package com.tarnlabs.allergybuster.ui.home
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
@@ -12,9 +14,14 @@ import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import com.tarnlabs.allergybuster.domain.model.UserWeights
 import com.tarnlabs.allergybuster.domain.usecase.SubmitFeedbackUseCase
+import com.tarnlabs.allergybuster.enqueueImmediatePollenFetch
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -32,7 +39,8 @@ class HomeViewModel @Inject constructor(
     private val pollenRepository: PollenRepository,
     private val submitFeedback: SubmitFeedbackUseCase,
     private val appSettings: AppSettingsDataStore,
-    private val locationProvider: LocationProvider
+    private val locationProvider: LocationProvider,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val today = LocalDate.now().toString()
@@ -75,6 +83,19 @@ class HomeViewModel @Inject constructor(
         val daysElapsed = maxOf(rawDays, feedbackCount.toInt()).coerceAtMost(LEARNING_WINDOW_DAYS)
         LearningProgress.from(daysElapsed = daysElapsed, feedbackCount = feedbackCount.toInt())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LearningProgress.INITIAL)
+
+    private val _isRetrying = MutableStateFlow(false)
+    val isRetrying: StateFlow<Boolean> = _isRetrying.asStateFlow()
+
+    fun retryForecastFetch() {
+        if (_isRetrying.value) return
+        _isRetrying.value = true
+        viewModelScope.launch {
+            enqueueImmediatePollenFetch(context, ExistingWorkPolicy.REPLACE)
+            delay(2_000)
+            _isRetrying.value = false
+        }
+    }
 
     fun submitFeedback(severity: Int) {
         viewModelScope.launch {

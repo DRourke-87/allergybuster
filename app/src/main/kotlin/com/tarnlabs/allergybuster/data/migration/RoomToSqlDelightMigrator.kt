@@ -12,6 +12,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 @Singleton
 class RoomToSqlDelightMigrator @Inject constructor(
@@ -137,7 +138,7 @@ class RoomToSqlDelightMigrator @Inject constructor(
                     bindLong(1, c.getLong(1))
                     bindDouble(2, c.getDouble(2))
                     bindString(3, c.getString(3))
-                    bindString(4, c.getString(4) ?: "[]")
+                    bindString(4, sanitizeContributorsJson(c.getString(4)))
                     bindLong(5, c.getLong(5))
                     bindLong(6, c.getLong(6))
                     bindString(7, c.getString(7) ?: "")
@@ -176,6 +177,17 @@ class RoomToSqlDelightMigrator @Inject constructor(
             }
         }
         return n
+    }
+
+    internal fun sanitizeContributorsJson(raw: String?): String {
+        if (raw.isNullOrBlank()) return "[]"
+        return try {
+            Json.decodeFromString<List<String>>(raw)
+            raw
+        } catch (_: Throwable) {
+            Log.w(TAG, "Dropping malformed topContributors during migration")
+            "[]"
+        }
     }
 
     private fun tableExists(db: SQLiteDatabase, name: String): Boolean =

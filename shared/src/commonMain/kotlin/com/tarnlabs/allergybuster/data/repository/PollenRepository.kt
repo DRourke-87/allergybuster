@@ -8,6 +8,7 @@ import com.tarnlabs.allergybuster.data.remote.dto.toDailyPollen
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -52,7 +53,8 @@ class PollenRepository(
         db.pollenForecastQueries.observeRecent(limit.toLong())
             .asFlow()
             .mapToList(Dispatchers.Default)
-            .map { rows -> rows.map { it.toDomain() } }
+            .map { rows -> rows.mapNotNull { runCatching { it.toDomain() }.getOrNull() } }
+            .catch { emit(emptyList()) }
 
     suspend fun pruneOldForecasts() {
         val cutoff = Clock.System.todayIn(TimeZone.currentSystemDefault())

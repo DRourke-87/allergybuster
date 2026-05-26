@@ -15,7 +15,18 @@ struct HomeView: View {
                             vm.submitFeedback(severity: severity)
                         }
                     } else {
-                        LoadingCard()
+                        LoadingCard(
+                            message: vm.showRetry
+                                ? "Still fetching — tap retry if this seems stuck."
+                                : "Fetching pollen data…"
+                        )
+                        if vm.showRetry {
+                            Button(vm.isRetrying ? "Retrying…" : "Retry") {
+                                vm.retryForecastFetch()
+                            }
+                            .disabled(vm.isRetrying)
+                            .buttonStyle(.bordered)
+                        }
                     }
 
                     if !vm.recentForecasts.isEmpty {
@@ -213,12 +224,15 @@ private struct LearningProgressCard: View {
 }
 
 private struct LoadingCard: View {
+    var message: String = "Fetching pollen data…"
+
     var body: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Fetching pollen data…")
+            Text(message)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(40)

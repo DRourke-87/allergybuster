@@ -26,7 +26,14 @@ enum BackgroundRefreshScheduler {
     @MainActor
     private static func runPollenRefresh(task: BGAppRefreshTask) async {
         scheduleNextRefresh()
+        await runImmediateFetch()
+        task.setTaskCompleted(success: true)
+    }
 
+    /// Performs an immediate pollen fetch + recommendation update. Used by the
+    /// scheduled BGAppRefreshTask and by the home-screen Retry button.
+    @MainActor
+    static func runImmediateFetch() async {
         let container = ServiceContainer.shared
         let defaults  = UserDefaults(suiteName: AppGroupId)
         let lat = defaults?.double(forKey: "latitude")  ?? 54.66
@@ -45,6 +52,5 @@ enum BackgroundRefreshScheduler {
         }
 
         WidgetCenter.shared.reloadAllTimelines()
-        task.setTaskCompleted(success: true)
     }
 }

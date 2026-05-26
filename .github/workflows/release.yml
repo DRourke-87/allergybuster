@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  repository_dispatch:
+    types:
+      - release-aab
   workflow_dispatch:
 
 env:

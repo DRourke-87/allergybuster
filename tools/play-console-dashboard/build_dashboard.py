@@ -552,15 +552,26 @@ def render_html(data: dict) -> str:
         <h2>AllergyBuster is already changing how people understand and act on hayfever.</h2>
         <p>For partners, this is the signal that matters: users are not passively browsing. They are connecting symptoms, triggers, treatment decisions, and real-world relief moments.</p>
       </div>
-      <div class="quote-grid">
-        <figure class="quote-card">
-          <blockquote>&ldquo;Jumped on the beta programme to test out! Suffered with hayfever for years. I have my injection booked in soon now that its kicked off. Twas a game changer for me and I have been kicking myself that I didn't do it sooner! The prescriptions stuff didn't cut it half the time for me.&rdquo;</blockquote>
-          <figcaption>Anonymised beta user feedback</figcaption>
-        </figure>
-        <figure class="quote-card">
-          <blockquote>&ldquo;25 years in the British Army travelling the world, to then settle near my home town and be plagued with hayfever and never really understood the trigger!! From a professional point of view, Bayesian Statistics has been on the forefront of conversations and not once have I ever thought to connect the two!&rdquo;</blockquote>
-          <figcaption>Anonymised early user feedback</figcaption>
-        </figure>
+      <div class="quote-carousel" data-quote-carousel>
+        <div class="quote-controls" aria-label="User feedback carousel controls">
+          <button class="quote-nav" type="button" aria-label="Previous user quote" data-quote-prev>&lsaquo;</button>
+          <div class="quote-dots" aria-label="Quote position"></div>
+          <button class="quote-nav" type="button" aria-label="Next user quote" data-quote-next>&rsaquo;</button>
+        </div>
+        <div class="quote-track">
+          <figure class="quote-card">
+            <blockquote>&ldquo;Jumped on the beta programme to test out! Suffered with hayfever for years. I have my injection booked in soon now that its kicked off. Twas a game changer for me and I have been kicking myself that I didn't do it sooner! The prescriptions stuff didn't cut it half the time for me.&rdquo;</blockquote>
+            <figcaption>Anonymised beta user feedback</figcaption>
+          </figure>
+          <figure class="quote-card">
+            <blockquote>&ldquo;25 years in the British Army travelling the world, to then settle near my home town and be plagued with hayfever and never really understood the trigger!! From a professional point of view, Bayesian Statistics has been on the forefront of conversations and not once have I ever thought to connect the two!&rdquo;</blockquote>
+            <figcaption>Anonymised early user feedback</figcaption>
+          </figure>
+          <figure class="quote-card">
+            <blockquote>&ldquo;Great idea! I've suffered with hay-fever for years and never entirely figured out the triggers.&rdquo;</blockquote>
+            <figcaption>Anonymised early user feedback</figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 
@@ -1130,10 +1141,64 @@ svg {{ overflow: visible; }}
   margin: 14px 0 0;
   color: var(--muted);
 }}
-.quote-grid {{
+.quote-carousel {{
+  min-width: 0;
+}}
+.quote-controls {{
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}}
+.quote-nav {{
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  color: var(--forest);
+  background: white;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}}
+.quote-nav:disabled {{
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.45;
+}}
+.quote-dots {{
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}}
+.quote-dots button {{
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--outline);
+  cursor: pointer;
+}}
+.quote-dots button.active {{
+  width: 22px;
+  background: var(--forest);
+}}
+.quote-track {{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
   gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}}
+.quote-track::-webkit-scrollbar {{
+  display: none;
 }}
 .quote-card {{
   display: flex;
@@ -1145,6 +1210,7 @@ svg {{ overflow: visible; }}
   border: 1px solid var(--outline);
   border-radius: 8px;
   background: white;
+  scroll-snap-align: start;
 }}
 .quote-card blockquote {{
   margin: 0;
@@ -1295,8 +1361,8 @@ footer {{
   .kpi-strip, .section-grid, .package-grid {{
     grid-template-columns: 1fr;
   }}
-  .quote-grid {{
-    grid-template-columns: 1fr;
+  .quote-controls {{
+    justify-content: space-between;
   }}
   .module.wide {{
     grid-column: span 1;
@@ -1476,6 +1542,55 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
 
+function initQuoteCarousel() {
+  const carousel = document.querySelector('[data-quote-carousel]');
+  if (!carousel || carousel.dataset.ready === 'true') return;
+
+  const track = carousel.querySelector('.quote-track');
+  const slides = Array.from(carousel.querySelectorAll('.quote-card'));
+  const prev = carousel.querySelector('[data-quote-prev]');
+  const next = carousel.querySelector('[data-quote-next]');
+  const dots = carousel.querySelector('.quote-dots');
+  if (!track || !slides.length || !prev || !next || !dots) return;
+
+  carousel.dataset.ready = 'true';
+  dots.innerHTML = slides.map((_, index) => `<button type="button" aria-label="Show user quote ${index + 1}" data-quote-dot="${index}"></button>`).join('');
+  const dotButtons = Array.from(dots.querySelectorAll('[data-quote-dot]'));
+  const slideLeft = slide => slide.offsetLeft - track.offsetLeft;
+
+  function currentIndex() {
+    const left = track.scrollLeft;
+    return slides.reduce((bestIndex, slide, index) => {
+      const bestDistance = Math.abs(slideLeft(slides[bestIndex]) - left);
+      const distance = Math.abs(slideLeft(slide) - left);
+      return distance < bestDistance ? index : bestIndex;
+    }, 0);
+  }
+
+  function goTo(index) {
+    const target = Math.max(0, Math.min(slides.length - 1, index));
+    track.scrollTo({ left: slideLeft(slides[target]), behavior: 'smooth' });
+    update(target);
+  }
+
+  function update(index = currentIndex()) {
+    prev.disabled = index === 0;
+    next.disabled = index === slides.length - 1;
+    dotButtons.forEach((dot, dotIndex) => {
+      dot.classList.toggle('active', dotIndex === index);
+      dot.setAttribute('aria-current', dotIndex === index ? 'true' : 'false');
+    });
+  }
+
+  prev.addEventListener('click', () => goTo(currentIndex() - 1));
+  next.addEventListener('click', () => goTo(currentIndex() + 1));
+  dotButtons.forEach((dot, index) => dot.addEventListener('click', () => goTo(index)));
+  track.addEventListener('scroll', () => {
+    window.requestAnimationFrame(() => update());
+  }, { passive: true });
+  update(0);
+}
+
 function redraw() {
   drawTimeline();
   drawBarChart('countryChart', data.countries || [], 'active', 10);
@@ -1485,6 +1600,7 @@ function redraw() {
   renderRankList('countryTable', data.countries || [], 'active', 8);
   renderRankList('deviceTable', data.devices || [], 'active', 7);
   renderRankList('carrierTable', data.carriers || [], 'active', 7);
+  initQuoteCarousel();
 }
 
 window.addEventListener('resize', () => {

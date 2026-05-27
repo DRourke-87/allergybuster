@@ -26,33 +26,33 @@ class RecommendationEngineTest {
     }
 
     @Test fun `grass at low threshold normalises to exactly 1`() {
-        // grass low=10; normalise(10) = 1.0; with 6 equal-weight types, score = 1/6 ≈ 0.167
+        // grass low=10; normalise(10) = 1.0; max score = 1.0 → level 1 (Moderate)
         val score = RecommendationEngine.computeScore(pollen(grass = 10f), defaultWeights)
-        assertEquals(1f / 6f, score, 0.001f)
-        assertEquals(0, RecommendationEngine.scoreToLevel(score))
-    }
-
-    @Test fun `grass at high threshold normalises to exactly 3`() {
-        // grass high=50; normalise(50) = 3.0; score = 3/6 = 0.5
-        val score = RecommendationEngine.computeScore(pollen(grass = 50f), defaultWeights)
-        assertEquals(3f / 6f, score, 0.001f)
-        assertEquals(0, RecommendationEngine.scoreToLevel(score))
-    }
-
-    @Test fun `grass above high threshold clamps to 3`() {
-        val score = RecommendationEngine.computeScore(pollen(grass = 999f), defaultWeights)
-        assertEquals(3f / 6f, score, 0.001f)
-    }
-
-    @Test fun `grass and birch both at high threshold gives level 1`() {
-        // grass norm=3, birch norm=3, others=0 → weightedSum=6, totalWeight=6 → score=1.0
-        val score = RecommendationEngine.computeScore(pollen(grass = 50f, birch = 100f), defaultWeights)
         assertEquals(1.0f, score, 0.001f)
         assertEquals(1, RecommendationEngine.scoreToLevel(score))
     }
 
+    @Test fun `grass at high threshold normalises to exactly 3`() {
+        // grass high=50; normalise(50) = 3.0; max score = 3.0 → level 2 (High)
+        val score = RecommendationEngine.computeScore(pollen(grass = 50f), defaultWeights)
+        assertEquals(3.0f, score, 0.001f)
+        assertEquals(2, RecommendationEngine.scoreToLevel(score))
+    }
+
+    @Test fun `grass above high threshold clamps to 3`() {
+        val score = RecommendationEngine.computeScore(pollen(grass = 999f), defaultWeights)
+        assertEquals(3.0f, score, 0.001f)
+    }
+
+    @Test fun `grass and birch both at high threshold gives level 2`() {
+        // grass norm=3, birch norm=3, max=3.0 → level 2 (High)
+        val score = RecommendationEngine.computeScore(pollen(grass = 50f, birch = 100f), defaultWeights)
+        assertEquals(3.0f, score, 0.001f)
+        assertEquals(2, RecommendationEngine.scoreToLevel(score))
+    }
+
     @Test fun `all types at high threshold gives level 2`() {
-        // All norm=3, all weight=1 → score = 18/6 = 3.0
+        // All norm=3, all weight=1 → max score = 3.0
         val score = RecommendationEngine.computeScore(
             pollen(alder = 100f, birch = 100f, grass = 50f, mugwort = 30f, olive = 100f, ragweed = 30f),
             defaultWeights
@@ -63,10 +63,10 @@ class RecommendationEngineTest {
 
     // --- scoreToLevel boundary values ---
 
-    @Test fun `score 0_749 maps to level 0`() = assertEquals(0, RecommendationEngine.scoreToLevel(0.749f))
-    @Test fun `score 0_75 maps to level 1`()  = assertEquals(1, RecommendationEngine.scoreToLevel(0.75f))
-    @Test fun `score 1_499 maps to level 1`() = assertEquals(1, RecommendationEngine.scoreToLevel(1.499f))
-    @Test fun `score 1_5 maps to level 2`()   = assertEquals(2, RecommendationEngine.scoreToLevel(1.5f))
+    @Test fun `score 0_999 maps to level 0`() = assertEquals(0, RecommendationEngine.scoreToLevel(0.999f))
+    @Test fun `score 1_0 maps to level 1`()   = assertEquals(1, RecommendationEngine.scoreToLevel(1.0f))
+    @Test fun `score 1_999 maps to level 1`() = assertEquals(1, RecommendationEngine.scoreToLevel(1.999f))
+    @Test fun `score 2_0 maps to level 2`()   = assertEquals(2, RecommendationEngine.scoreToLevel(2.0f))
 
     // --- contributions ordering ---
 

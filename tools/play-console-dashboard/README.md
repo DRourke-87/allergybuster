@@ -24,7 +24,7 @@ tools/play-console-dashboard/dist/index.html
 The generator reads files matching:
 
 ```text
-stats_installs_installs_*.csv
+*.csv
 ```
 
 It ignores `supported_devices.csv`.
@@ -45,4 +45,4 @@ CSV inputs and generated output are intentionally ignored by Git because they ar
 
 The dashboard is designed as a sponsorship/reporting artefact, not an internal analytics tool.
 
-The current Google Play install CSVs do not include DAU or MAU. If you later add a Play Console export with columns such as `daily_active_users`, `dau`, `monthly_active_users`, or `mau`, the dashboard will detect and display them automatically.
+Install CSVs alone do not include DAU or MAU. If you add a Play Console active-user export with columns such as `daily_active_users`, `dau`, `monthly_active_users`, or `mau`, the dashboard will detect and display them automatically. When both total and country-specific columns are present, it prefers the all-countries / regions value.

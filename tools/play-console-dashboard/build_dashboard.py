@@ -146,7 +146,7 @@ def normalise_value(value):
     if value is None:
         return ""
     text = str(value).strip()
-    if text == "":
+    if text in {"", "-", "\u2013", "\u2014"}:
         return ""
     if re.fullmatch(r"-?\d+", text.replace(",", "")):
         return int(text.replace(",", ""))
@@ -161,6 +161,8 @@ def infer_dimension(file_name: str, columns: Iterable[str]) -> str:
         if dimension in lowered:
             return "android_os_version" if dimension == "os_version" else dimension
     column_set = set(columns)
+    if any(activity_metric_kind(column) for column in column_set):
+        return "activity"
     for dimension in ["country", "app_version_code", "android_os_version", "device", "language", "carrier"]:
         if dimension in column_set:
             return dimension
@@ -258,27 +260,8 @@ def sum_metric(rows: list[dict], metric: str) -> int:
 
 
 def extract_activity_metrics(reports: list[Report]) -> dict:
-    dau = latest_metric_from_reports(
-        reports,
-        [
-            "daily_active_users",
-            "daily_active_user",
-            "dau",
-            "daily_active_devices",
-            "daily_active_device_installs",
-        ],
-    )
-    mau = latest_metric_from_reports(
-        reports,
-        [
-            "monthly_active_users",
-            "monthly_active_user",
-            "mau",
-            "28_day_active_users",
-            "28d_active_users",
-            "monthly_active_devices",
-        ],
-    )
+    dau = latest_activity_metric_from_reports(reports, "dau")
+    mau = latest_activity_metric_from_reports(reports, "mau")
     stickiness = None
     if dau and mau and mau["value"]:
         stickiness = dau["value"] / mau["value"] * 100
@@ -295,16 +278,16 @@ def extract_activity_metrics(reports: list[Report]) -> dict:
     }
 
 
-def latest_metric_from_reports(reports: list[Report], candidates: list[str]) -> dict | None:
-    for report in reports:
-        available = [candidate for candidate in candidates if any(candidate in row for row in report.rows)]
-        if not available:
+def latest_activity_metric_from_reports(reports: list[Report], kind: str) -> dict | None:
+    preferred_reports = sorted(reports, key=lambda report: 0 if report.dimension == "activity" else 1)
+    for report in preferred_reports:
+        metric = best_activity_column(report.rows, kind)
+        if not metric:
             continue
-        metric = available[0]
         dated_rows = [row for row in report.rows if row.get(metric) not in ("", None)]
         if not dated_rows:
             continue
-        dates = sorted({str(row.get("date", "")) for row in dated_rows if row.get("date")})
+        dates = sorted({str(row.get("date", "")) for row in dated_rows if row.get("date")}, key=date_sort_key)
         selected_rows = rows_for_date(dated_rows, dates[-1]) if dates else dated_rows
         value = int(sum(as_number(row.get(metric)) for row in selected_rows))
         return {
@@ -312,7 +295,91 @@ def latest_metric_from_reports(reports: list[Report], candidates: list[str]) -> 
             "date": dates[-1] if dates else "",
             "source": report.name,
             "column": metric,
+            "segment": activity_segment(metric),
         }
+    return None
+
+
+def best_activity_column(rows: list[dict], kind: str) -> str | None:
+    columns = {
+        column
+        for row in rows
+        for column in row
+        if activity_metric_kind(column) == kind
+    }
+    if not columns:
+        return None
+    return sorted(columns, key=activity_column_score)[0]
+
+
+def activity_metric_kind(column: str) -> str | None:
+    key = searchable_key(column)
+    if (
+        "monthly_active_users" in key
+        or "monthly_active_user" in key
+        or "monthly_active_devices" in key
+        or "28_day_active_users" in key
+        or "28d_active_users" in key
+        or re.search(r"(^|_)mau($|_)", key)
+    ):
+        return "mau"
+    if (
+        "daily_active_users" in key
+        or "daily_active_user" in key
+        or "daily_active_devices" in key
+        or "daily_active_device_installs" in key
+        or re.search(r"(^|_)dau($|_)", key)
+    ):
+        return "dau"
+    return None
+
+
+def activity_column_score(column: str) -> tuple[int, int]:
+    key = searchable_key(column)
+    if "all_countries_regions" in key or ("all_countries" in key and "regions" in key):
+        priority = 0
+    elif "all_countries" in key or "total" in key or "overall" in key:
+        priority = 1
+    elif key in {"dau", "mau", "daily_active_users", "monthly_active_users"}:
+        priority = 2
+    else:
+        priority = 3
+    return (priority, len(key))
+
+
+def activity_segment(column: str) -> str:
+    key = searchable_key(column)
+    if "all_countries_regions" in key or ("all_countries" in key and "regions" in key):
+        return "All countries / regions"
+    if "united_kingdom" in key:
+        return "United Kingdom"
+    if "united_states" in key:
+        return "United States"
+    if "ireland" in key:
+        return "Ireland"
+    return "Selected export"
+
+
+def searchable_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(value).lower()).strip("_")
+
+
+def date_sort_key(value: str) -> tuple[int, str]:
+    parsed = parse_date(value)
+    if parsed:
+        return (1, parsed.isoformat())
+    return (0, str(value))
+
+
+def parse_date(value: str) -> date | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    for pattern in ("%Y-%m-%d", "%d %b %Y", "%d %B %Y"):
+        try:
+            return datetime.strptime(text, pattern).date()
+        except ValueError:
+            continue
     return None
 
 
@@ -614,6 +681,12 @@ def activity_snapshot(activity: dict) -> str:
     dau_value = format_optional_number(dau["value"] if dau else None)
     mau_value = format_optional_number(mau["value"] if mau else None)
     stickiness_text = f"{stickiness:.1f}% DAU/MAU stickiness" if stickiness is not None else "Stickiness needs both DAU and MAU"
+    activity_dates = [metric["date"] for metric in [dau, mau] if metric and metric.get("date")]
+    latest_activity_date = sorted(activity_dates, key=date_sort_key)[-1] if activity_dates else ""
+    segment = (dau or mau or {}).get("segment", "Selected export")
+    detail_text = f"{stickiness_text} - {segment}"
+    if latest_activity_date:
+        detail_text = f"{detail_text} - Latest {friendly_date(latest_activity_date)}"
 
     return f"""
       <div class="activity-card">
@@ -625,7 +698,7 @@ def activity_snapshot(activity: dict) -> str:
           <span>MAU</span>
           <strong>{html.escape(mau_value)}</strong>
         </div>
-        <p>{html.escape(stickiness_text)}</p>
+        <p>{html.escape(detail_text)}</p>
       </div>
     """
 

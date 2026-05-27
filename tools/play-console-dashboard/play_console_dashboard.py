@@ -5,6 +5,7 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
@@ -19,6 +20,7 @@ COUNTRY_ALIASES = {
     "IE": {"IE", "IRL", "IRELAND"},
     "US": {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"},
 }
+APP_DIR = Path(__file__).resolve().parent
 
 
 @dataclass(frozen=True)
@@ -128,6 +130,15 @@ def storage_client(credentials_path: str, project_id: str):
     return storage.Client(project=project_id)
 
 
+def default_credentials_path() -> str:
+    env_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+    if env_path:
+        return env_path
+
+    local_json_files = sorted(APP_DIR.glob("*.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    return str(local_json_files[0]) if local_json_files else ""
+
+
 @st.cache_data(show_spinner=False, ttl=900)
 def load_gcs_reports(gcs_prefix: str, max_files: int, credentials_path: str, project_id: str) -> list[pd.DataFrame]:
     path = parse_gcs_path(gcs_prefix)
@@ -155,6 +166,12 @@ def load_uploaded_reports(files) -> list[pd.DataFrame]:
 
 def render_gcs_error(error: Exception) -> None:
     st.error("Google Play reports could not be loaded from GCS.")
+    if "storage.objects.list" in str(error) or "403" in str(error):
+        st.warning(
+            "The service account key was read, but Google denied access to the Play Console reports bucket. "
+            "In Play Console, grant the service account account-level "
+            "'View app information and download bulk reports (read-only)' access."
+        )
     st.markdown(
         """
 The dashboard needs Google Cloud credentials with read access to the Play Console reports bucket.
@@ -345,8 +362,7 @@ def main() -> None:
         st.header("Data Source")
         source = st.radio("Load reports from", ["GCS bucket", "CSV upload"], horizontal=False)
         gcs_prefix = st.text_input("GCS prefix", DEFAULT_GCS_PREFIX)
-        default_credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
-        credentials_path = st.text_input("Service account JSON path", default_credentials_path)
+        credentials_path = st.text_input("Service account JSON path", default_credentials_path())
         project_id = st.text_input("Google Cloud project ID", "")
         max_files = st.slider("Max latest GCS CSV files", min_value=1, max_value=200, value=60, step=5)
         uploaded_files = st.file_uploader("Upload Play Console CSVs", type=["csv"], accept_multiple_files=True)

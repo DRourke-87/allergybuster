@@ -1,6 +1,7 @@
 .streamlit/secrets.toml
 service-account*.json
 credentials*.json
+*.json
 data/
 cache/
 .venv/

@@ -66,3 +66,5 @@ The Google identity needs read access to the Play Console report bucket.
 You can also skip GCS auth and upload CSV files manually in the dashboard.
 
 If you see `DefaultCredentialsError`, no Google credentials are configured for this machine. Run `gcloud auth application-default login`, set `GOOGLE_APPLICATION_CREDENTIALS`, or use the sidebar service-account path.
+
+If you see `403` or `storage.objects.list`, the JSON key is valid but the service account does not have Play Console bulk-report access. Add the service account email in Play Console > Users and permissions with **account-level** `View app information and download bulk reports (read-only)` permission.

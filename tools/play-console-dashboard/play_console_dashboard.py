@@ -112,8 +112,49 @@ def infer_dimension(source_name: str, columns: Iterable[str]) -> str:
 
 
 def read_csv_bytes(content: bytes, source_name: str) -> pd.DataFrame:
-    df = pd.read_csv(io.BytesIO(content))
-    return normalise_report(df, source_name)
+    encodings = candidate_encodings(content)
+    errors: list[str] = []
+
+    for encoding in encodings:
+        try:
+            text = content.decode(encoding)
+            separator = detect_separator(text)
+            df = pd.read_csv(io.StringIO(text), sep=separator, engine="python")
+            if len(df.columns) > 1:
+                return normalise_report(df, source_name)
+            errors.append(f"{encoding}: only one column detected")
+        except Exception as error:
+            errors.append(f"{encoding}: {error}")
+
+    raise ValueError(
+        f"Could not read {source_name} as a Play Console CSV. Tried common encodings. "
+        + " | ".join(errors[:4])
+    )
+
+
+def candidate_encodings(content: bytes) -> list[str]:
+    if content.startswith(b"\xff\xfe"):
+        return ["utf-16", "utf-16-le", "utf-8-sig", "cp1252", "latin1"]
+    if content.startswith(b"\xfe\xff"):
+        return ["utf-16", "utf-16-be", "utf-8-sig", "cp1252", "latin1"]
+    if content.startswith(b"\xef\xbb\xbf"):
+        return ["utf-8-sig", "utf-8", "cp1252", "latin1"]
+
+    sample = content[:2000]
+    even_nulls = sample[0::2].count(0)
+    odd_nulls = sample[1::2].count(0)
+    if even_nulls + odd_nulls > len(sample) * 0.2:
+        if odd_nulls > even_nulls:
+            return ["utf-16-le", "utf-16", "utf-8-sig", "cp1252", "latin1"]
+        return ["utf-16-be", "utf-16", "utf-8-sig", "cp1252", "latin1"]
+
+    return ["utf-8-sig", "utf-8", "cp1252", "latin1", "utf-16"]
+
+
+def detect_separator(text: str) -> str:
+    first_line = next((line for line in text.splitlines() if line.strip()), "")
+    candidates = [",", "\t", ";"]
+    return max(candidates, key=first_line.count)
 
 
 def storage_client(credentials_path: str, project_id: str):
@@ -185,9 +226,27 @@ def load_gcs_reports(gcs_prefix: str, max_files: int, credentials_path: str, pro
 
 def load_uploaded_reports(files) -> list[pd.DataFrame]:
     reports: list[pd.DataFrame] = []
+    errors: list[str] = []
     for uploaded_file in files:
-        reports.append(read_csv_bytes(uploaded_file.getvalue(), uploaded_file.name))
+        try:
+            reports.append(read_csv_bytes(uploaded_file.getvalue(), uploaded_file.name))
+        except Exception as error:
+            errors.append(f"{uploaded_file.name}: {error}")
+    if errors:
+        raise ValueError("\n".join(errors))
     return reports
+
+
+def render_csv_error(error: Exception) -> None:
+    st.error("One or more uploaded CSV files could not be read.")
+    st.markdown(
+        """
+Export the reports from Play Console as CSV, then upload the original files directly.
+The dashboard supports UTF-8, UTF-16, Excel-style CSV, comma-separated, and tab-separated files.
+"""
+    )
+    with st.expander("Technical error"):
+        st.code(str(error))
 
 
 def render_gcs_error(error: Exception) -> None:
@@ -391,7 +450,7 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Data Source")
-        source = st.radio("Load reports from", ["GCS bucket", "CSV upload"], horizontal=False)
+        source = st.radio("Load reports from", ["CSV upload", "GCS bucket"], horizontal=False)
         gcs_prefix = st.text_input("GCS prefix", DEFAULT_GCS_PREFIX)
         credentials_path = st.text_input("Service account JSON path", default_credentials_path())
         project_id = st.text_input("Billing/user project ID", "")
@@ -419,8 +478,12 @@ def main() -> None:
                     reports = []
     else:
         if uploaded_files:
-            reports = load_uploaded_reports(uploaded_files)
-            st.session_state["reports"] = reports
+            try:
+                reports = load_uploaded_reports(uploaded_files)
+                st.session_state["reports"] = reports
+            except Exception as error:
+                render_csv_error(error)
+                reports = []
 
     reports = st.session_state.get("reports", reports)
     df = concat_reports(reports)

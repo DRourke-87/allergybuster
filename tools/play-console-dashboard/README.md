@@ -41,6 +41,8 @@ Run:
 streamlit run play_console_dashboard.py
 ```
 
+The default mode is **CSV upload**, so you do not need Google Cloud billing. Export CSV reports from Play Console and upload them directly in the dashboard.
+
 ## Google Cloud Auth
 
 Use one of these options:

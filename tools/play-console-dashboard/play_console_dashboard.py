@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import os
 import re
 from dataclasses import dataclass
 from datetime import date
@@ -112,12 +113,25 @@ def read_csv_bytes(content: bytes, source_name: str) -> pd.DataFrame:
     return normalise_report(df, source_name)
 
 
-@st.cache_data(show_spinner=False, ttl=900)
-def load_gcs_reports(gcs_prefix: str, max_files: int) -> list[pd.DataFrame]:
+def storage_client(credentials_path: str, project_id: str):
     from google.cloud import storage
 
+    credentials_path = credentials_path.strip()
+    project_id = project_id.strip() or None
+
+    if credentials_path:
+        from google.oauth2 import service_account
+
+        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        return storage.Client(project=project_id or credentials.project_id, credentials=credentials)
+
+    return storage.Client(project=project_id)
+
+
+@st.cache_data(show_spinner=False, ttl=900)
+def load_gcs_reports(gcs_prefix: str, max_files: int, credentials_path: str, project_id: str) -> list[pd.DataFrame]:
     path = parse_gcs_path(gcs_prefix)
-    client = storage.Client()
+    client = storage_client(credentials_path, project_id)
     blobs = [
         blob
         for blob in client.list_blobs(path.bucket, prefix=path.prefix)
@@ -137,6 +151,31 @@ def load_uploaded_reports(files) -> list[pd.DataFrame]:
     for uploaded_file in files:
         reports.append(read_csv_bytes(uploaded_file.getvalue(), uploaded_file.name))
     return reports
+
+
+def render_gcs_error(error: Exception) -> None:
+    st.error("Google Play reports could not be loaded from GCS.")
+    st.markdown(
+        """
+The dashboard needs Google Cloud credentials with read access to the Play Console reports bucket.
+
+Use one of these options:
+
+```powershell
+gcloud auth application-default login
+```
+
+or add a local service account JSON path in the sidebar:
+
+```powershell
+C:\\path\\to\\service-account.json
+```
+
+You can also switch to **CSV upload** and use exported Play Console reports without Google Cloud auth.
+"""
+    )
+    with st.expander("Technical error"):
+        st.code(f"{type(error).__name__}: {error}")
 
 
 def concat_reports(reports: list[pd.DataFrame]) -> pd.DataFrame:
@@ -306,6 +345,9 @@ def main() -> None:
         st.header("Data Source")
         source = st.radio("Load reports from", ["GCS bucket", "CSV upload"], horizontal=False)
         gcs_prefix = st.text_input("GCS prefix", DEFAULT_GCS_PREFIX)
+        default_credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+        credentials_path = st.text_input("Service account JSON path", default_credentials_path)
+        project_id = st.text_input("Google Cloud project ID", "")
         max_files = st.slider("Max latest GCS CSV files", min_value=1, max_value=200, value=60, step=5)
         uploaded_files = st.file_uploader("Upload Play Console CSVs", type=["csv"], accept_multiple_files=True)
 
@@ -322,8 +364,12 @@ def main() -> None:
     if source == "GCS bucket":
         if st.button("Load GCS reports", type="primary"):
             with st.spinner("Loading Play Console reports from GCS..."):
-                reports = load_gcs_reports(gcs_prefix, max_files)
-                st.session_state["reports"] = reports
+                try:
+                    reports = load_gcs_reports(gcs_prefix, max_files, credentials_path, project_id)
+                    st.session_state["reports"] = reports
+                except Exception as error:
+                    render_gcs_error(error)
+                    reports = []
     else:
         if uploaded_files:
             reports = load_uploaded_reports(uploaded_files)

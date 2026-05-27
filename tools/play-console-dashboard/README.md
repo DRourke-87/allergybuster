@@ -51,12 +51,18 @@ Use one of these options:
 gcloud auth application-default login
 ```
 
-2. Service account JSON stored locally, never committed:
+If Google asks for a project, use any Google Cloud project that your account can access. The dashboard only needs a project to initialise the Storage client; the report data comes from the Play Console bucket.
+
+2. Service account JSON stored locally, never committed. Either set an environment variable:
 
 ```powershell
 $env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\service-account.json"
 ```
 
+or paste the JSON path into the dashboard sidebar.
+
 The Google identity needs read access to the Play Console report bucket.
 
 You can also skip GCS auth and upload CSV files manually in the dashboard.
+
+If you see `DefaultCredentialsError`, no Google credentials are configured for this machine. Run `gcloud auth application-default login`, set `GOOGLE_APPLICATION_CREDENTIALS`, or use the sidebar service-account path.

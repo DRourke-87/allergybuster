@@ -15,6 +15,7 @@ import streamlit as st
 
 DEFAULT_GCS_PREFIX = "gs://pubsite_prod_7020116138428415210/stats/installs/"
 DEFAULT_COUNTRIES = ["GB", "IE", "US"]
+GCS_READ_ONLY_SCOPE = "https://www.googleapis.com/auth/devstorage.read_only"
 COUNTRY_ALIASES = {
     "GB": {"GB", "GBR", "UK", "UNITED KINGDOM", "GREAT BRITAIN"},
     "IE": {"IE", "IRL", "IRELAND"},
@@ -116,6 +117,7 @@ def read_csv_bytes(content: bytes, source_name: str) -> pd.DataFrame:
 
 
 def storage_client(credentials_path: str, project_id: str):
+    import google.auth
     from google.cloud import storage
 
     credentials_path = credentials_path.strip()
@@ -124,10 +126,14 @@ def storage_client(credentials_path: str, project_id: str):
     if credentials_path:
         from google.oauth2 import service_account
 
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path,
+            scopes=[GCS_READ_ONLY_SCOPE],
+        )
         return storage.Client(project=project_id or credentials.project_id, credentials=credentials)
 
-    return storage.Client(project=project_id)
+    credentials, default_project_id = google.auth.default(scopes=[GCS_READ_ONLY_SCOPE])
+    return storage.Client(project=project_id or default_project_id, credentials=credentials)
 
 
 def default_credentials_path() -> str:

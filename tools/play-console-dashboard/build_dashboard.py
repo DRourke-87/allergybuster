@@ -515,8 +515,8 @@ def render_html(data: dict) -> str:
     <section class="kpi-strip" aria-label="Key metrics">
       {kpi_card("Addressable audience", data["kpis"]["activeInstalls"], "Installed audience available for seasonal campaigns", "leaf")}
       {kpi_card("New users", data["kpis"]["totalUserInstalls"], "Fresh allergy-intent audience in this export window", "gold")}
-      {kpi_card("Net growth", data["kpis"]["netUserInstalls"], "Audience retained after uninstalls", "forest")}
-      {kpi_card("Demand events", data["kpis"]["installEvents"], "Store-side signals of app demand", "bark")}
+      {activity_kpi_card("DAU", data["activityMetrics"], "dau", "Daily active users in the partner reach segment", "forest")}
+      {activity_kpi_card("MAU", data["activityMetrics"], "mau", "Monthly active users in the partner reach segment", "bark")}
     </section>
 
     <section class="section-grid">
@@ -658,6 +658,22 @@ def kpi_card(label: str, value: int, note: str, tone: str) -> str:
       <article class="kpi-card {tone}">
         <span>{html.escape(label)}</span>
         <strong data-format="integer" data-value="{value}"></strong>
+        <small>{html.escape(note)}</small>
+      </article>
+    """
+
+
+def activity_kpi_card(label: str, activity: dict, metric: str, note: str, tone: str) -> str:
+    item = activity.get(metric)
+    if item and item.get("value") is not None:
+        value_html = f'<strong data-format="integer" data-value="{int(item["value"])}"></strong>'
+    else:
+        value_html = "<strong>—</strong>"
+
+    return f"""
+      <article class="kpi-card {tone}">
+        <span>{html.escape(label)}</span>
+        {value_html}
         <small>{html.escape(note)}</small>
       </article>
     """

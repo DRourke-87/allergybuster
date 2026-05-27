@@ -546,6 +546,24 @@ def render_html(data: dict) -> str:
       </article>
     </section>
 
+    <section class="proof-section" aria-label="Early user feedback">
+      <div class="proof-head">
+        <p class="eyebrow">User proof</p>
+        <h2>AllergyBuster is already changing how people understand and act on hayfever.</h2>
+        <p>For partners, this is the signal that matters: users are not passively browsing. They are connecting symptoms, triggers, treatment decisions, and real-world relief moments.</p>
+      </div>
+      <div class="quote-grid">
+        <figure class="quote-card">
+          <blockquote>&ldquo;Jumped on the beta programme to test out! Suffered with hayfever for years. I have my injection booked in soon now that its kicked off. Twas a game changer for me and I have been kicking myself that I didn't do it sooner! The prescriptions stuff didn't cut it half the time for me.&rdquo;</blockquote>
+          <figcaption>Anonymised beta user feedback</figcaption>
+        </figure>
+        <figure class="quote-card">
+          <blockquote>&ldquo;25 years in the British Army travelling the world, to then settle near my home town and be plagued with hayfever and never really understood the trigger!! From a professional point of view, Bayesian Statistics has been on the forefront of conversations and not once have I ever thought to connect the two!&rdquo;</blockquote>
+          <figcaption>Anonymised early user feedback</figcaption>
+        </figure>
+      </div>
+    </section>
+
     <section class="section-grid" id="markets">
       <article class="module wide">
         <div class="module-head">
@@ -1097,6 +1115,50 @@ svg {{ overflow: visible; }}
   color: var(--muted);
   font-size: 0.9rem;
 }}
+.proof-section {{
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 22px;
+  align-items: start;
+  margin-top: 26px;
+  padding: 10px 0;
+}}
+.proof-head h2 {{
+  max-width: 520px;
+}}
+.proof-head p:not(.eyebrow) {{
+  margin: 14px 0 0;
+  color: var(--muted);
+}}
+.quote-grid {{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}}
+.quote-card {{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 255px;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: white;
+}}
+.quote-card blockquote {{
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.98rem;
+}}
+.quote-card figcaption {{
+  margin-top: 18px;
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 840;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}}
 .rank-list {{
   display: grid;
   gap: 10px;
@@ -1206,7 +1268,7 @@ footer {{
   font-size: 0.86rem;
 }}
 @media (max-width: 980px) {{
-  .hero-grid, .sponsor-band {{
+  .hero-grid, .sponsor-band, .proof-section {{
     grid-template-columns: 1fr;
   }}
   .kpi-strip, .section-grid, .package-grid {{
@@ -1231,6 +1293,9 @@ footer {{
     padding-inline: 14px;
   }}
   .kpi-strip, .section-grid, .package-grid {{
+    grid-template-columns: 1fr;
+  }}
+  .quote-grid {{
     grid-template-columns: 1fr;
   }}
   .module.wide {{

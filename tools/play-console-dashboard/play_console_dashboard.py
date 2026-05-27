@@ -136,6 +136,10 @@ def storage_client(credentials_path: str, project_id: str):
     return storage.Client(project=project_id or default_project_id, credentials=credentials)
 
 
+def billing_project(client, project_id: str) -> str | None:
+    return project_id.strip() or client.project
+
+
 def default_credentials_path() -> str:
     env_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
     if env_path:
@@ -149,16 +153,17 @@ def default_credentials_path() -> str:
 def load_gcs_reports(gcs_prefix: str, max_files: int, credentials_path: str, project_id: str) -> list[pd.DataFrame]:
     path = parse_gcs_path(gcs_prefix)
     client = storage_client(credentials_path, project_id)
+    bucket = client.bucket(path.bucket, user_project=billing_project(client, project_id))
     blobs = [
         blob
-        for blob in client.list_blobs(path.bucket, prefix=path.prefix)
+        for blob in client.list_blobs(bucket, prefix=path.prefix)
         if blob.name.lower().endswith(".csv")
     ]
     blobs = sorted(blobs, key=lambda blob: blob.name, reverse=True)[:max_files]
 
     reports: list[pd.DataFrame] = []
     for blob in blobs:
-        content = blob.download_as_bytes()
+        content = bucket.blob(blob.name).download_as_bytes()
         reports.append(read_csv_bytes(content, blob.name))
     return reports
 
@@ -172,11 +177,16 @@ def load_uploaded_reports(files) -> list[pd.DataFrame]:
 
 def render_gcs_error(error: Exception) -> None:
     st.error("Google Play reports could not be loaded from GCS.")
-    if "storage.objects.list" in str(error) or "403" in str(error):
+    if "storage.objects.list" in str(error):
         st.warning(
             "The service account key was read, but Google denied access to the Play Console reports bucket. "
             "In Play Console, grant the service account account-level "
             "'View app information and download bulk reports (read-only)' access."
+        )
+    if "billing account" in str(error).lower() or "userproject" in str(error).lower():
+        st.warning(
+            "Google Storage also needs a billing-enabled requester project for these report downloads. "
+            "Enter a billing-enabled Google Cloud project ID in the sidebar."
         )
     st.markdown(
         """
@@ -369,7 +379,7 @@ def main() -> None:
         source = st.radio("Load reports from", ["GCS bucket", "CSV upload"], horizontal=False)
         gcs_prefix = st.text_input("GCS prefix", DEFAULT_GCS_PREFIX)
         credentials_path = st.text_input("Service account JSON path", default_credentials_path())
-        project_id = st.text_input("Google Cloud project ID", "")
+        project_id = st.text_input("Billing/user project ID", "")
         max_files = st.slider("Max latest GCS CSV files", min_value=1, max_value=200, value=60, step=5)
         uploaded_files = st.file_uploader("Upload Play Console CSVs", type=["csv"], accept_multiple_files=True)
 

@@ -68,3 +68,5 @@ You can also skip GCS auth and upload CSV files manually in the dashboard.
 If you see `DefaultCredentialsError`, no Google credentials are configured for this machine. Run `gcloud auth application-default login`, set `GOOGLE_APPLICATION_CREDENTIALS`, or use the sidebar service-account path.
 
 If you see `403` or `storage.objects.list`, the JSON key is valid but the service account does not have Play Console bulk-report access. Add the service account email in Play Console > Users and permissions with **account-level** `View app information and download bulk reports (read-only)` permission.
+
+If you see `billing account for the owning project is disabled`, enter a billing-enabled Google Cloud project ID in the dashboard sidebar under **Billing/user project ID**. Play Console report buckets behave like requester-pays Cloud Storage buckets, so Google needs a project to attach to the download request.

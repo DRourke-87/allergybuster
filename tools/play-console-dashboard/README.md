@@ -70,3 +70,5 @@ If you see `DefaultCredentialsError`, no Google credentials are configured for t
 If you see `403` or `storage.objects.list`, the JSON key is valid but the service account does not have Play Console bulk-report access. Add the service account email in Play Console > Users and permissions with **account-level** `View app information and download bulk reports (read-only)` permission.
 
 If you see `billing account for the owning project is disabled`, enter a billing-enabled Google Cloud project ID in the dashboard sidebar under **Billing/user project ID**. Play Console report buckets behave like requester-pays Cloud Storage buckets, so Google needs a project to attach to the download request.
+
+Use the **Project ID** from Google Cloud, not the Play Console bucket number. For example, use `allergybuster-play-reports`, not `7020116138428415210`. The project must have billing enabled, and the signed-in user or service account must be allowed to use it for requester-pays requests.

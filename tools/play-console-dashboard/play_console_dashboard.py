@@ -140,6 +140,20 @@ def billing_project(client, project_id: str) -> str | None:
     return project_id.strip() or client.project
 
 
+def validate_billing_project(project_id: str) -> None:
+    value = project_id.strip()
+    if not value:
+        raise ValueError(
+            "Billing/user project ID is required for Play Console report downloads. "
+            "Use a real Google Cloud project ID with billing enabled, not the Play Console bucket number."
+        )
+    if value.isdigit():
+        raise ValueError(
+            f"'{value}' looks like a project number or Play Console bucket ID. "
+            "Enter the Google Cloud Project ID instead, such as 'allergybuster-play-reports'."
+        )
+
+
 def default_credentials_path() -> str:
     env_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
     if env_path:
@@ -152,6 +166,7 @@ def default_credentials_path() -> str:
 @st.cache_data(show_spinner=False, ttl=900)
 def load_gcs_reports(gcs_prefix: str, max_files: int, credentials_path: str, project_id: str) -> list[pd.DataFrame]:
     path = parse_gcs_path(gcs_prefix)
+    validate_billing_project(project_id)
     client = storage_client(credentials_path, project_id)
     bucket = client.bucket(path.bucket, user_project=billing_project(client, project_id))
     blobs = [

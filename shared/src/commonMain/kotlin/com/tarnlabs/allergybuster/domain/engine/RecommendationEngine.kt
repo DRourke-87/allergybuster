@@ -8,21 +8,19 @@ import com.tarnlabs.allergybuster.domain.model.getWeight
 object RecommendationEngine {
 
     fun computeScore(pollen: DailyPollen, weights: UserWeights): Float {
-        var weightedSum = 0f
-        var totalWeight = 0f
+        var maxScore = 0f
         for (type in PollenType.entries) {
             val norm = type.normalise(pollen.getRaw(type))
             val weight = weights.getWeight(type)
-            weightedSum += norm * weight
-            totalWeight += weight
+            maxScore = maxOf(maxScore, norm * weight)
         }
-        return if (totalWeight == 0f) 0f else weightedSum / totalWeight
+        return maxScore
     }
 
     fun scoreToLevel(score: Float): Int = when {
-        score < 0.75f -> 0
-        score < 1.50f -> 1
-        else          -> 2
+        score < 1.0f -> 0
+        score < 2.0f -> 1
+        else         -> 2
     }
 
     fun levelToAdvice(level: Int): String = when (level) {

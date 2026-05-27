@@ -2,8 +2,12 @@
 service-account*.json
 credentials*.json
 *.json
+*.csv
+*.tsv
 data/
 cache/
+dist/
+out/
 .venv/
 __pycache__/
 *.pyc

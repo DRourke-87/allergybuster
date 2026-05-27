@@ -265,15 +265,20 @@ def extract_activity_metrics(reports: list[Report]) -> dict:
     stickiness = None
     if dau and mau and mau["value"]:
         stickiness = dau["value"] / mau["value"] * 100
+    available = bool(dau or mau)
 
     return {
         "dau": dau,
         "mau": mau,
         "stickiness": stickiness,
-        "available": bool(dau or mau),
+        "available": available,
         "note": (
-            "DAU/MAU were not present in the uploaded Play install CSVs. "
-            "These install exports show installed audience and install momentum, not app-open activity."
+            "DAU/MAU active-user metrics are available from the uploaded Play Console export."
+            if available
+            else (
+                "DAU/MAU were not present in the uploaded Play install CSVs. "
+                "These install exports show installed audience and install momentum, not app-open activity."
+            )
         ),
     }
 
@@ -440,7 +445,7 @@ def dimension_label(dimension: str, key: str) -> str:
 
 def period_label(start: str, end: str) -> str:
     if not start or not end:
-        return "Current Play Console export"
+        return "Current aggregate audience snapshot"
     if start == end:
         return friendly_date(start)
     return f"{friendly_date(start)} to {friendly_date(end)}"
@@ -471,7 +476,7 @@ def render_html(data: dict) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AllergyBuster Sponsorship Dashboard</title>
+  <title>AllergyBuster Partner Opportunity</title>
   <style>{css()}</style>
 </head>
 <body>
@@ -480,27 +485,27 @@ def render_html(data: dict) -> str:
   <header class="hero">
     <nav class="topbar">
       <div class="brand">{icon_html}<span>AllergyBuster</span></div>
-      <div class="report-date">Play Console export &bull; {html.escape(data["periodLabel"])}</div>
+      <div class="report-date">Aggregate audience snapshot &bull; {html.escape(data["periodLabel"])}</div>
     </nav>
 
     <section class="hero-grid">
       <div>
-        <p class="eyebrow">Sponsorship readiness</p>
-        <h1>Privacy-first allergy reach, packaged for high-pollen day partnerships.</h1>
-        <p class="hero-copy">A partner-facing view of AllergyBuster's Google Play footprint. Built from aggregate Play Console exports only, with no ad SDK, no live billing dependency, and no user-level health data.</p>
+        <p class="eyebrow">Partnership opportunity</p>
+        <h1>Own the high-pollen moment inside a privacy-first allergy app.</h1>
+        <p class="hero-copy">AllergyBuster gives allergy-care brands a direct, trusted route to people checking pollen conditions and planning relief. Partnership inventory is intentionally limited, clearly labelled, and measured with aggregate Play Console data rather than ad-network profiling.</p>
         <div class="hero-actions">
-          <a href="#markets" class="button primary">View markets</a>
-          <a href="#sponsorship" class="button secondary">Partner model</a>
+          <a href="#sponsorship" class="button primary">See the offer</a>
+          <a href="#markets" class="button secondary">Review reach</a>
         </div>
       </div>
       <aside class="hero-panel">
-        <div class="panel-label">Current audience base</div>
+        <div class="panel-label">Installed audience</div>
         <div class="hero-number" data-format="integer" data-value="{data["kpis"]["activeInstalls"]}"></div>
-        <div class="hero-subtitle">active device installs at latest export date</div>
+        <div class="hero-subtitle">people with AllergyBuster installed at latest export date</div>
         <div class="micro-grid">
-          <div><span data-format="integer" data-value="{data["kpis"]["totalUserInstalls"]}"></span><small>user installs</small></div>
-          <div><span data-format="integer" data-value="{data["kpis"]["installEvents"]}"></span><small>install events</small></div>
-          <div><span data-format="integer" data-value="{data["kpis"]["countryCount"]}"></span><small>active markets</small></div>
+          <div><span data-format="integer" data-value="{data["kpis"]["totalUserInstalls"]}"></span><small>new users</small></div>
+          <div><span data-format="integer" data-value="{data["kpis"]["installEvents"]}"></span><small>demand events</small></div>
+          <div><span data-format="integer" data-value="{data["kpis"]["countryCount"]}"></span><small>markets reached</small></div>
         </div>
       </aside>
     </section>
@@ -508,35 +513,35 @@ def render_html(data: dict) -> str:
 
   <main>
     <section class="kpi-strip" aria-label="Key metrics">
-      {kpi_card("Active device installs", data["kpis"]["activeInstalls"], "Latest Play Console snapshot", "leaf")}
-      {kpi_card("User installs", data["kpis"]["totalUserInstalls"], "During selected export window", "gold")}
-      {kpi_card("Net user installs", data["kpis"]["netUserInstalls"], "Installs minus uninstalls", "forest")}
-      {kpi_card("Install events", data["kpis"]["installEvents"], "Demand signal across devices", "bark")}
+      {kpi_card("Addressable audience", data["kpis"]["activeInstalls"], "Installed audience available for seasonal campaigns", "leaf")}
+      {kpi_card("New users", data["kpis"]["totalUserInstalls"], "Fresh allergy-intent audience in this export window", "gold")}
+      {kpi_card("Net growth", data["kpis"]["netUserInstalls"], "Audience retained after uninstalls", "forest")}
+      {kpi_card("Demand events", data["kpis"]["installEvents"], "Store-side signals of app demand", "bark")}
     </section>
 
     <section class="section-grid">
       <article class="module wide">
         <div class="module-head">
           <div>
-            <p class="eyebrow">Growth pulse</p>
-            <h2>Install momentum</h2>
+            <p class="eyebrow">Audience growth</p>
+            <h2>Momentum partners can buy into</h2>
           </div>
-          <p class="module-note">Daily Play Console install export, {html.escape(data["periodLabel"])}</p>
+          <p class="module-note">Aggregate Play Console growth signals, {html.escape(data["periodLabel"])}</p>
         </div>
         <div id="timelineChart" class="chart"></div>
       </article>
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Partner signal</p>
-            <h2>Why this inventory matters</h2>
+            <p class="eyebrow">Why invest</p>
+            <h2>Built for intent, not interruption</h2>
           </div>
         </div>
         {activity_snapshot(data["activityMetrics"])}
         <div class="sponsor-points">
-          <div><strong>Contextual timing</strong><span>Paid recommendations can appear around high-pollen moments rather than broad demographic targeting.</span></div>
-          <div><strong>Trust-preserving placement</strong><span>Aggregate reporting keeps the privacy-first product promise intact.</span></div>
-          <div><strong>Category alignment</strong><span>Pharmacy, OTC allergy care, air filtration, and eye-care partners fit the core use case.</span></div>
+          <div><strong>High-intent timing</strong><span>Reach users when pollen risk is relevant and relief decisions are already in mind.</span></div>
+          <div><strong>Brand-safe exclusivity</strong><span>One category-fit partner can be positioned as a helpful recommendation, not a programmatic ad.</span></div>
+          <div><strong>Privacy-led measurement</strong><span>Campaign reporting can prove reach and action without collecting symptom history or personal profiles.</span></div>
         </div>
       </article>
     </section>
@@ -545,18 +550,18 @@ def render_html(data: dict) -> str:
       <article class="module wide">
         <div class="module-head">
           <div>
-            <p class="eyebrow">Market footprint</p>
-            <h2>Country split</h2>
+            <p class="eyebrow">Where campaigns can scale</p>
+            <h2>Market reach by country</h2>
           </div>
-          <p class="module-note">All countries in the uploaded export</p>
+          <p class="module-note">Use this split to shape launch markets, seasonal budgets, and territory exclusivity</p>
         </div>
         <div id="countryChart" class="chart tall"></div>
       </article>
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Top markets</p>
-            <h2>Active installs</h2>
+            <p class="eyebrow">Priority markets</p>
+            <h2>Installed audience</h2>
           </div>
         </div>
         <div id="countryTable" class="rank-list"></div>
@@ -567,8 +572,8 @@ def render_html(data: dict) -> str:
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Release quality</p>
-            <h2>Version adoption</h2>
+            <p class="eyebrow">Delivery confidence</p>
+            <h2>Version coverage</h2>
           </div>
         </div>
         <div id="versionChart" class="chart small"></div>
@@ -576,8 +581,8 @@ def render_html(data: dict) -> str:
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Device base</p>
-            <h2>Android versions</h2>
+            <p class="eyebrow">Audience compatibility</p>
+            <h2>Android coverage</h2>
           </div>
         </div>
         <div id="osChart" class="chart small"></div>
@@ -585,8 +590,8 @@ def render_html(data: dict) -> str:
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Audience context</p>
-            <h2>Languages</h2>
+            <p class="eyebrow">Localisation signal</p>
+            <h2>Audience languages</h2>
           </div>
         </div>
         <div id="languageChart" class="chart small"></div>
@@ -595,14 +600,14 @@ def render_html(data: dict) -> str:
 
     <section class="sponsor-band" id="sponsorship">
       <div>
-        <p class="eyebrow">Commercial package</p>
-        <h2>Recommended long-term sponsorship format</h2>
-        <p>Sell one clearly-labelled allergy-care partner slot around high-pollen risk moments, measured with aggregate reach, click, and redemption reporting. Keep the first offer simple: seasonal exclusivity, product education, and a privacy-safe recommendation surface.</p>
+        <p class="eyebrow">Partnership model</p>
+        <h2>A focused seasonal channel for allergy-care brands</h2>
+        <p>Partner with AllergyBuster to become the named recommendation when users are checking pollen conditions and deciding what to do next. The offer is intentionally premium: limited partner slots, contextual placement, and aggregate reporting your marketing, retail, and compliance teams can trust.</p>
       </div>
       <div class="package-grid">
-        <div><span>1</span><strong>High-pollen card</strong><small>Sponsored recommendation in the app experience.</small></div>
-        <div><span>2</span><strong>Partner landing page</strong><small>Education, coupon, or store locator destination.</small></div>
-        <div><span>3</span><strong>Aggregate report</strong><small>Views, taps, market mix, and campaign-period trend.</small></div>
+        <div><span>1</span><strong>Own high-pollen days</strong><small>Exclusive or priority placement when allergy intent is strongest.</small></div>
+        <div><span>2</span><strong>Turn intent into action</strong><small>Route users to education, coupons, retailers, or store locators.</small></div>
+        <div><span>3</span><strong>Prove the value</strong><small>Receive aggregate reach, taps, market mix, and campaign trend reporting.</small></div>
       </div>
     </section>
 
@@ -610,7 +615,7 @@ def render_html(data: dict) -> str:
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Devices</p>
+            <p class="eyebrow">Technical reach</p>
             <h2>Top device models</h2>
           </div>
         </div>
@@ -619,20 +624,20 @@ def render_html(data: dict) -> str:
       <article class="module">
         <div class="module-head compact">
           <div>
-            <p class="eyebrow">Network context</p>
+            <p class="eyebrow">Distribution context</p>
             <h2>Top carriers</h2>
           </div>
         </div>
         <div id="carrierTable" class="rank-list"></div>
       </article>
       <article class="module privacy-card">
-        <p class="eyebrow">Privacy position</p>
-        <h2>What this report does not use</h2>
+        <p class="eyebrow">Brand-safe by design</p>
+        <h2>Why partners can trust the channel</h2>
         <ul>
-          <li>No ad service data</li>
-          <li>No symptom history</li>
-          <li>No precise location</li>
-          <li>No user-level profiles</li>
+          <li>No ad-network dependency</li>
+          <li>No symptom-history targeting</li>
+          <li>No precise-location profiling</li>
+          <li>No user-level partner reports</li>
         </ul>
       </article>
     </section>
@@ -640,7 +645,7 @@ def render_html(data: dict) -> str:
 
   <footer>
     <span>Generated {html.escape(data["generatedAt"])}</span>
-    <span>Input reports: {len(data["availableReports"])}</span>
+    <span>Built from {len(data["availableReports"])} aggregate source exports</span>
   </footer>
 
   <script>{javascript()}</script>
@@ -674,17 +679,17 @@ def activity_snapshot(activity: dict) -> str:
             <span>MAU</span>
             <strong>—</strong>
           </div>
-          <p>DAU/MAU are not in the current install CSVs. Add a Play Console active-user export later and this panel will populate automatically.</p>
+          <p>Add a Play Console active-user export to show partners the active audience available for seasonal campaigns.</p>
         </div>
         """
 
     dau_value = format_optional_number(dau["value"] if dau else None)
     mau_value = format_optional_number(mau["value"] if mau else None)
-    stickiness_text = f"{stickiness:.1f}% DAU/MAU stickiness" if stickiness is not None else "Stickiness needs both DAU and MAU"
+    stickiness_text = f"{stickiness:.1f}% daily-to-monthly engagement" if stickiness is not None else "Engagement ratio needs both DAU and MAU"
     activity_dates = [metric["date"] for metric in [dau, mau] if metric and metric.get("date")]
     latest_activity_date = sorted(activity_dates, key=date_sort_key)[-1] if activity_dates else ""
     segment = (dau or mau or {}).get("segment", "Selected export")
-    detail_text = f"{stickiness_text} - {segment}"
+    detail_text = f"{stickiness_text} across {segment}"
     if latest_activity_date:
         detail_text = f"{detail_text} - Latest {friendly_date(latest_activity_date)}"
 

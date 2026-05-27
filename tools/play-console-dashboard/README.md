@@ -17,7 +17,7 @@ the dashboard can show:
 - install and uninstall trends
 - active device installs
 - current user installs, when present in the report
-- country split, including UK, Ireland, and US
+- country split across all available countries
 - app version split, when app-version reports are available
 - device / OS / carrier / language split, when those report dimensions are available
 - seasonal date-window views, such as March to August

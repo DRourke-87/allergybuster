@@ -14,7 +14,7 @@ import streamlit as st
 
 
 DEFAULT_GCS_PREFIX = "gs://pubsite_prod_7020116138428415210/stats/installs/"
-DEFAULT_COUNTRIES = ["GB", "IE", "US"]
+DEFAULT_COUNTRIES: list[str] = []
 GCS_READ_ONLY_SCOPE = "https://www.googleapis.com/auth/devstorage.read_only"
 COUNTRY_ALIASES = {
     "GB": {"GB", "GBR", "UK", "UNITED KINGDOM", "GREAT BRITAIN"},
@@ -463,7 +463,7 @@ def main() -> None:
         default_end = date(today.year, 8, 31)
         start = st.date_input("Start date", default_start)
         end = st.date_input("End date", default_end)
-        country_text = st.text_input("Countries", ",".join(DEFAULT_COUNTRIES))
+        country_text = st.text_input("Countries", ",".join(DEFAULT_COUNTRIES), help="Leave blank to show all countries.")
         countries = [item.strip().upper() for item in re.split(r"[, ]+", country_text) if item.strip()]
 
     reports: list[pd.DataFrame] = []

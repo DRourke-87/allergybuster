@@ -200,12 +200,59 @@ Java/Kotlin target: **JVM 17**. `minSdk = 26`, `compileSdk = 35`.
 
 ---
 
+## Versioning policy
+
+### Scheme
+
+```
+MAJOR.MINOR.PATCH   e.g. 1.2.4
+```
+
+| Change type | Which part increments | Example |
+|-------------|----------------------|---------|
+| Bug fix / crash fix / small tweak | PATCH (`x.x.Y`) | `1.2.4 → 1.2.5` |
+| New user-visible feature | MINOR, reset PATCH to 0 (`x.Y.0`) | `1.2.4 → 1.3.0` |
+| Breaking / major redesign | MAJOR (rare, discuss first) | `1.2.4 → 2.0.0` |
+
+### When to bump
+
+**Bump the version on the feature/fix branch before merging**, not after.
+The version in `main` should always reflect what is (or is about to be) shipped.
+
+### Files to update
+
+Two files must be kept in sync:
+
+1. **`app/build.gradle.kts`** — `versionName` field (Android):
+   ```kotlin
+   versionName = "1.2.5"   // ← update this
+   ```
+   Leave `versionCode` alone — CI sets it automatically to the GitHub Actions run number.
+
+2. **`iosApp/AllergyBuster.xcodeproj/project.pbxproj`** — `MARKETING_VERSION` field (iOS).
+   It appears four times (Debug + Release × app target + widget target); update all four:
+   ```
+   MARKETING_VERSION = 1.2.5;
+   ```
+   Leave `CURRENT_PROJECT_VERSION` alone — Codemagic manages it.
+
+### Checklist for every branch
+
+Before pushing a branch that is ready to merge:
+
+- [ ] Decide: bug fix (patch) or new feature (minor)?
+- [ ] Update `versionName` in `app/build.gradle.kts`
+- [ ] Update all four `MARKETING_VERSION` entries in `project.pbxproj`
+- [ ] Commit the version bump with message `Bump version to X.Y.Z`
+
+---
+
 ## Release workflow
 
 ### Android
 
-1. Bump `versionName` in `app/build.gradle.kts` (do **not** touch `versionCode` — CI sets it).
-2. Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+1. Merge the branch (version already bumped on the branch).
+2. Tag from `main`: `git tag vX.Y.Z && git push origin vX.Y.Z`
 3. GitHub Actions `Release AAB` workflow fires, produces a signed AAB artifact.
 4. Upload AAB manually to Play Console (no Play API automation yet).
 

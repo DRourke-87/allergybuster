@@ -1557,6 +1557,10 @@ function initQuoteCarousel() {
   dots.innerHTML = slides.map((_, index) => `<button type="button" aria-label="Show user quote ${index + 1}" data-quote-dot="${index}"></button>`).join('');
   const dotButtons = Array.from(dots.querySelectorAll('[data-quote-dot]'));
   const slideLeft = slide => slide.offsetLeft - track.offsetLeft;
+  const autoScrollMs = 3000;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let autoTimer = null;
+  let isPaused = false;
 
   function currentIndex() {
     const left = track.scrollLeft;
@@ -1568,18 +1572,38 @@ function initQuoteCarousel() {
   }
 
   function goTo(index) {
-    const target = Math.max(0, Math.min(slides.length - 1, index));
+    const target = (index + slides.length) % slides.length;
     track.scrollTo({ left: slideLeft(slides[target]), behavior: 'smooth' });
     update(target);
   }
 
   function update(index = currentIndex()) {
-    prev.disabled = index === 0;
-    next.disabled = index === slides.length - 1;
+    prev.disabled = slides.length <= 1;
+    next.disabled = slides.length <= 1;
     dotButtons.forEach((dot, dotIndex) => {
       dot.classList.toggle('active', dotIndex === index);
       dot.setAttribute('aria-current', dotIndex === index ? 'true' : 'false');
     });
+  }
+
+  function startAutoScroll() {
+    if (reduceMotion || slides.length <= 1 || autoTimer || isPaused) return;
+    autoTimer = window.setInterval(() => goTo(currentIndex() + 1), autoScrollMs);
+  }
+
+  function stopAutoScroll() {
+    window.clearInterval(autoTimer);
+    autoTimer = null;
+  }
+
+  function pauseAutoScroll() {
+    isPaused = true;
+    stopAutoScroll();
+  }
+
+  function resumeAutoScroll() {
+    isPaused = false;
+    startAutoScroll();
   }
 
   prev.addEventListener('click', () => goTo(currentIndex() - 1));
@@ -1588,7 +1612,19 @@ function initQuoteCarousel() {
   track.addEventListener('scroll', () => {
     window.requestAnimationFrame(() => update());
   }, { passive: true });
+  carousel.addEventListener('pointerenter', pauseAutoScroll);
+  carousel.addEventListener('pointerleave', resumeAutoScroll);
+  carousel.addEventListener('focusin', pauseAutoScroll);
+  carousel.addEventListener('focusout', resumeAutoScroll);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopAutoScroll();
+    } else {
+      startAutoScroll();
+    }
+  });
   update(0);
+  startAutoScroll();
 }
 
 function redraw() {

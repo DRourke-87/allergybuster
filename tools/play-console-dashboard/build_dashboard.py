@@ -17,7 +17,7 @@ REPO_ROOT = ROOT.parents[1]
 OUTPUT_DIR = ROOT / "dist"
 OUTPUT_FILE = OUTPUT_DIR / "index.html"
 APP_ICON = REPO_ROOT / "docs" / "images" / "icon.png"
-REPORT_PATTERN = "stats_installs_installs_*.csv"
+REPORT_PATTERN = "*.csv"
 
 BRAND = {
     "forest": "#2E6B1A",
@@ -187,6 +187,7 @@ def build_dashboard_data(reports: list[Report]) -> dict:
     net_user_installs = installs - uninstalls
     growth_delta = latest_active - first_active
     growth_percent = (growth_delta / first_active * 100) if first_active else None
+    activity_metrics = extract_activity_metrics(reports)
 
     country_rows = by_dimension.get("country", Report("", "country", [])).rows
     country_summary = summarise_dimension(country_rows, "country", latest_day)
@@ -226,6 +227,7 @@ def build_dashboard_data(reports: list[Report]) -> dict:
             "countryCount": len([item for item in country_summary if item["active"] > 0 or item["installs"] > 0]),
         },
         "timeline": timeline,
+        "activityMetrics": activity_metrics,
         "countries": country_summary,
         "appVersions": app_versions,
         "osVersions": os_versions,
@@ -253,6 +255,65 @@ def rows_for_date(rows: list[dict], day: str) -> list[dict]:
 
 def sum_metric(rows: list[dict], metric: str) -> int:
     return int(sum(as_number(row.get(metric)) for row in rows))
+
+
+def extract_activity_metrics(reports: list[Report]) -> dict:
+    dau = latest_metric_from_reports(
+        reports,
+        [
+            "daily_active_users",
+            "daily_active_user",
+            "dau",
+            "daily_active_devices",
+            "daily_active_device_installs",
+        ],
+    )
+    mau = latest_metric_from_reports(
+        reports,
+        [
+            "monthly_active_users",
+            "monthly_active_user",
+            "mau",
+            "28_day_active_users",
+            "28d_active_users",
+            "monthly_active_devices",
+        ],
+    )
+    stickiness = None
+    if dau and mau and mau["value"]:
+        stickiness = dau["value"] / mau["value"] * 100
+
+    return {
+        "dau": dau,
+        "mau": mau,
+        "stickiness": stickiness,
+        "available": bool(dau or mau),
+        "note": (
+            "DAU/MAU were not present in the uploaded Play install CSVs. "
+            "These install exports show installed audience and install momentum, not app-open activity."
+        ),
+    }
+
+
+def latest_metric_from_reports(reports: list[Report], candidates: list[str]) -> dict | None:
+    for report in reports:
+        available = [candidate for candidate in candidates if any(candidate in row for row in report.rows)]
+        if not available:
+            continue
+        metric = available[0]
+        dated_rows = [row for row in report.rows if row.get(metric) not in ("", None)]
+        if not dated_rows:
+            continue
+        dates = sorted({str(row.get("date", "")) for row in dated_rows if row.get("date")})
+        selected_rows = rows_for_date(dated_rows, dates[-1]) if dates else dated_rows
+        value = int(sum(as_number(row.get(metric)) for row in selected_rows))
+        return {
+            "value": value,
+            "date": dates[-1] if dates else "",
+            "source": report.name,
+            "column": metric,
+        }
+    return None
 
 
 def as_number(value) -> float:
@@ -404,6 +465,7 @@ def render_html(data: dict) -> str:
             <h2>Why this inventory matters</h2>
           </div>
         </div>
+        {activity_snapshot(data["activityMetrics"])}
         <div class="sponsor-points">
           <div><strong>Contextual timing</strong><span>Paid recommendations can appear around high-pollen moments rather than broad demographic targeting.</span></div>
           <div><strong>Trust-preserving placement</strong><span>Aggregate reporting keeps the privacy-first product promise intact.</span></div>
@@ -527,6 +589,51 @@ def kpi_card(label: str, value: int, note: str, tone: str) -> str:
         <small>{html.escape(note)}</small>
       </article>
     """
+
+
+def activity_snapshot(activity: dict) -> str:
+    dau = activity.get("dau")
+    mau = activity.get("mau")
+    stickiness = activity.get("stickiness")
+
+    if not activity.get("available"):
+        return """
+        <div class="activity-card unavailable">
+          <div>
+            <span>DAU</span>
+            <strong>—</strong>
+          </div>
+          <div>
+            <span>MAU</span>
+            <strong>—</strong>
+          </div>
+          <p>DAU/MAU are not in the current install CSVs. Add a Play Console active-user export later and this panel will populate automatically.</p>
+        </div>
+        """
+
+    dau_value = format_optional_number(dau["value"] if dau else None)
+    mau_value = format_optional_number(mau["value"] if mau else None)
+    stickiness_text = f"{stickiness:.1f}% DAU/MAU stickiness" if stickiness is not None else "Stickiness needs both DAU and MAU"
+
+    return f"""
+      <div class="activity-card">
+        <div>
+          <span>DAU</span>
+          <strong>{html.escape(dau_value)}</strong>
+        </div>
+        <div>
+          <span>MAU</span>
+          <strong>{html.escape(mau_value)}</strong>
+        </div>
+        <p>{html.escape(stickiness_text)}</p>
+      </div>
+    """
+
+
+def format_optional_number(value) -> str:
+    if value is None:
+        return "—"
+    return f"{int(value):,}"
 
 
 def json_for_script(data: dict) -> str:
@@ -826,10 +933,57 @@ svg {{ overflow: visible; }}
   fill: var(--muted);
   font-size: 12px;
 }}
+.axis-title {{
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}}
 .chart-value {{
   fill: var(--ink);
   font-size: 12px;
   font-weight: 720;
+}}
+.activity-card {{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--outline);
+  background: linear-gradient(135deg, white, var(--green-50, #F3F8EF));
+}}
+.activity-card div {{
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+}}
+.activity-card span {{
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}}
+.activity-card strong {{
+  display: block;
+  margin-top: 4px;
+  color: var(--forest);
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}}
+.activity-card p {{
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}}
+.activity-card.unavailable strong {{
+  color: var(--muted);
 }}
 .sponsor-points {{
   display: grid;
@@ -1027,20 +1181,48 @@ function linePath(points) {
   return points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
 }
 
+function niceCeil(value) {
+  if (value <= 5) return 5;
+  const exponent = Math.floor(Math.log10(value));
+  const base = Math.pow(10, exponent);
+  const fraction = value / base;
+  const niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
+  return niceFraction * base;
+}
+
+function tickValues(max, count = 4) {
+  const niceMax = niceCeil(max);
+  return Array.from({ length: count + 1 }, (_, index) => Math.round(niceMax * index / count));
+}
+
+function formatAxis(value) {
+  if (value >= 1000000) return `${(value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1)}m`;
+  if (value >= 1000) return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
+  return fmt.format(value);
+}
+
 function drawTimeline() {
   const rows = data.timeline || [];
-  mountSvg('timelineChart', 320, (svg, width, height) => {
-    const pad = { left: 44, right: 18, top: 18, bottom: 42 };
+  mountSvg('timelineChart', 360, (svg, width, height) => {
+    const pad = { left: 64, right: 26, top: 54, bottom: 52 };
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
-    const maxY = maxValue(rows, ['active', 'installs', 'uninstalls']);
+    const rawMaxY = maxValue(rows, ['active', 'installs', 'uninstalls']);
+    const ticks = tickValues(rawMaxY, 4);
+    const maxY = ticks[ticks.length - 1];
     const x = index => pad.left + (rows.length <= 1 ? 0 : index * plotW / (rows.length - 1));
     const y = value => pad.top + plotH - (Number(value || 0) / maxY) * plotH;
 
-    for (let i = 0; i <= 4; i++) {
-      const yy = pad.top + (plotH * i / 4);
+    ticks.forEach(value => {
+      const yy = y(value);
       svg.appendChild(svgEl('line', { x1: pad.left, x2: width - pad.right, y1: yy, y2: yy, stroke: '#DDE8D3', 'stroke-width': 1 }));
-    }
+      const label = svgEl('text', { x: pad.left - 12, y: yy + 4, 'text-anchor': 'end', class: 'axis-label' });
+      label.textContent = formatAxis(value);
+      svg.appendChild(label);
+    });
+
+    svg.appendChild(svgEl('line', { x1: pad.left, x2: pad.left, y1: pad.top, y2: pad.top + plotH, stroke: '#C9D7BE', 'stroke-width': 1 }));
+    svg.appendChild(svgEl('line', { x1: pad.left, x2: width - pad.right, y1: pad.top + plotH, y2: pad.top + plotH, stroke: '#C9D7BE', 'stroke-width': 1 }));
 
     const series = [
       ['active', '#2E6B1A', 'Active installs'],
@@ -1054,15 +1236,20 @@ function drawTimeline() {
       points.forEach(point => svg.appendChild(svgEl('circle', { cx: point.x, cy: point.y, r: 4, fill: color, stroke: 'white', 'stroke-width': 2 })));
     });
 
+    const labelStep = Math.max(1, Math.ceil(rows.length / 6));
     rows.forEach((row, index) => {
-      if (index === 0 || index === rows.length - 1 || rows.length <= 8) {
+      if (index === 0 || index === rows.length - 1 || index % labelStep === 0) {
         const text = svgEl('text', { x: x(index), y: height - 13, 'text-anchor': index === 0 ? 'start' : index === rows.length - 1 ? 'end' : 'middle', class: 'axis-label' });
         text.textContent = String(row.date || '').slice(5);
         svg.appendChild(text);
       }
     });
 
-    const legend = svgEl('g', { transform: `translate(${pad.left}, 12)` });
+    const title = svgEl('text', { x: pad.left, y: 18, class: 'axis-title' });
+    title.textContent = 'Installs';
+    svg.appendChild(title);
+
+    const legend = svgEl('g', { transform: `translate(${pad.left}, 38)` });
     series.forEach(([key, color, label], index) => {
       const gx = index * 132;
       legend.appendChild(svgEl('circle', { cx: gx, cy: 0, r: 4, fill: color }));
@@ -1071,6 +1258,21 @@ function drawTimeline() {
       legend.appendChild(text);
     });
     svg.appendChild(legend);
+
+    if (rows.length) {
+      const last = rows[rows.length - 1];
+      const lastX = x(rows.length - 1);
+      [
+        ['active', '#2E6B1A'],
+        ['installs', '#A07828'],
+        ['uninstalls', '#B53B2A'],
+      ].forEach(([key, color], index) => {
+        const value = Number(last[key] || 0);
+        const label = svgEl('text', { x: Math.min(width - pad.right, lastX + 8), y: y(value) + 4 + index * 2, fill: color, class: 'chart-value' });
+        label.textContent = formatAxis(value);
+        svg.appendChild(label);
+      });
+    }
   });
 }
 

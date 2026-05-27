@@ -41,5 +41,8 @@ CSV inputs and generated output are intentionally ignored by Git because they ar
 - app version adoption
 - Android version, language, device, and carrier breakdowns
 - privacy-safe commercial package framing
+- DAU/MAU when an uploaded CSV contains active-user columns
 
 The dashboard is designed as a sponsorship/reporting artefact, not an internal analytics tool.
+
+The current Google Play install CSVs do not include DAU or MAU. If you later add a Play Console export with columns such as `daily_active_users`, `dau`, `monthly_active_users`, or `mau`, the dashboard will detect and display them automatically.

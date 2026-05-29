@@ -23,7 +23,7 @@ struct LearningProgressState {
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    @Published var todayRecommendation: Recommendation? = nil
+    @Published var todayRecommendation: Recommendation_? = nil
     @Published var todayFeedback: DailyFeedback?        = nil
     @Published var recentForecasts: [DailyPollen]       = []
     @Published var userWeights: UserWeights             = .defaultWeights
@@ -123,7 +123,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    private func updateStuckTimer(recommendation: Recommendation?) {
+    private func updateStuckTimer(recommendation: Recommendation_?) {
         stuckTimer?.cancel()
         if recommendation != nil {
             showRetry = false

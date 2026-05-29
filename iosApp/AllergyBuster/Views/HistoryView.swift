@@ -60,9 +60,7 @@ private struct HistoryRow: View {
         return "\(parts[2])/\(parts[1])/\(parts[0])"
     }
 
-    private var topContributors: [String] {
-        (try? JSONDecoder().decode([String].self, from: Data(day.recommendation.topContributors.utf8))) ?? []
-    }
+    private var topContributors: [String] { day.recommendation.topContributors }
 
     var body: some View {
         HStack(spacing: 14) {

@@ -18,7 +18,7 @@ struct HomeView: View {
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
-                        ContributorsRow(contributors: decodedContributors(rec.topContributors)) { name in
+                        ContributorsRow(contributors: rec.topContributors) { name in
                             selectedType = PollenTypeInfo.from(displayName: name)
                         }
                         FeedbackSection(existingFeedback: vm.todayFeedback) { severity in
@@ -67,7 +67,7 @@ struct HomeView: View {
 // MARK: - Sub-components
 
 private struct RecommendationCard: View {
-    let rec: Recommendation
+    let rec: Recommendation_
 
     var levelColor: Color {
         switch rec.level {
@@ -95,7 +95,7 @@ private struct RecommendationCard: View {
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            if rec.isStale != 0 {
+            if rec.isStale {
                 Label("Based on yesterday's data", systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -272,6 +272,3 @@ private struct LoadingCard: View {
     }
 }
 
-private func decodedContributors(_ json: String) -> [String] {
-    (try? JSONDecoder().decode([String].self, from: Data(json.utf8))) ?? []
-}

@@ -25,7 +25,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 7
-        versionName = "1.2.4"
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -106,10 +106,6 @@ dependencies {
 
     // WorkManager
     implementation(libs.work.runtime.ktx)
-
-    // Glance widget
-    implementation(libs.glance.appwidget)
-    implementation(libs.glance.material3)
 
     // Coroutines (Android dispatcher)
     implementation(libs.kotlinx.coroutines.android)

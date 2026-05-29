@@ -72,12 +72,6 @@ workflows:
             --type IOS_APP_STORE \
             --create
 
-      - name: Fetch signing files — widget
-        script: |
-          app-store-connect fetch-signing-files com.tarnlabs.allergybuster.widget \
-            --type IOS_APP_STORE \
-            --create
-
       - name: Add certificates to keychain
         script: keychain add-certificates
 

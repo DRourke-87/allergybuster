@@ -81,14 +81,6 @@
 -dontwarn androidx.navigation.**
 
 # ===========================================================================
-# Glance AppWidget
-# ===========================================================================
--keep class androidx.glance.** { *; }
--keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver
--keep class * extends androidx.glance.appwidget.GlanceAppWidget
--dontwarn androidx.glance.**
-
-# ===========================================================================
 # DataStore
 # ===========================================================================
 -keep class androidx.datastore.*.** { *; }

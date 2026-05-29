@@ -17,35 +17,10 @@
 		AA0100000000000000000008 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000008 /* SettingsViewModel.swift */; };
 		AA0100000000000000000009 /* BackgroundRefreshScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000009 /* BackgroundRefreshScheduler.swift */; };
 		AA010000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000A /* Assets.xcassets */; };
-		AA010000000000000000000B /* AllergyBusterWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000B /* AllergyBusterWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		AA010000000000000000000C /* AllergyBusterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000C /* AllergyBusterWidget.swift */; };
-		AA010000000000000000000D /* AllergyBusterWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000D /* AllergyBusterWidgetBundle.swift */; };
-		AA010000000000000000000E /* Assets.xcassets in Resources (widget) */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000E /* Assets.xcassets (widget) */; };
+		AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000020 /* PollenTypeInfo.swift */; };
+		AA0100000000000000000021 /* PollenDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000021 /* PollenDetailView.swift */; };
+		AA0100000000000000000022 /* LearningTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000022 /* LearningTreeView.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		AA0600000000000000000005 /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				AA010000000000000000000B /* AllergyBusterWidget.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXContainerItemProxy section */
-		AA0900000000000000000002 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AA0500000000000000000001 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = AA0400000000000000000001;
-			remoteInfo = AllergyBuster;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		AA0200000000000000000001 /* AllergyBusterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyBusterApp.swift; sourceTree = "<group>"; };
@@ -58,26 +33,16 @@
 		AA0200000000000000000008 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		AA0200000000000000000009 /* BackgroundRefreshScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRefreshScheduler.swift; sourceTree = "<group>"; };
 		AA020000000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AA020000000000000000000B /* AllergyBusterWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AllergyBusterWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA020000000000000000000C /* AllergyBusterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyBusterWidget.swift; sourceTree = "<group>"; };
-		AA020000000000000000000D /* AllergyBusterWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllergyBusterWidgetBundle.swift; sourceTree = "<group>"; };
-		AA020000000000000000000E /* Assets.xcassets (widget) */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA020000000000000000000F /* AllergyBuster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AllergyBuster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA0200000000000000000011 /* Info.plist (widget) */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; };
 		AA0200000000000000000012 /* AllergyBuster.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyBuster.entitlements; sourceTree = "<group>"; };
-		AA0200000000000000000013 /* AllergyBusterWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyBusterWidget.entitlements; sourceTree = "<group>"; };
+		AA0200000000000000000020 /* PollenTypeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenTypeInfo.swift; sourceTree = "<group>"; };
+		AA0200000000000000000021 /* PollenDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenDetailView.swift; sourceTree = "<group>"; };
+		AA0200000000000000000022 /* LearningTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningTreeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AA0600000000000000000002 /* Frameworks (app) */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0600000000000000000008 /* Frameworks (widget) */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -91,7 +56,6 @@
 			isa = PBXGroup;
 			children = (
 				AA0300000000000000000002 /* AllergyBuster */,
-				AA0300000000000000000006 /* AllergyBusterWidget */,
 				AA0300000000000000000008 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +65,7 @@
 			children = (
 				AA0200000000000000000001 /* AllergyBusterApp.swift */,
 				AA0200000000000000000002 /* ServiceContainer.swift */,
+				AA0200000000000000000020 /* PollenTypeInfo.swift */,
 				AA0300000000000000000003 /* Views */,
 				AA0300000000000000000004 /* ViewModels */,
 				AA0300000000000000000005 /* Services */,
@@ -117,6 +82,8 @@
 				AA0200000000000000000003 /* HomeView.swift */,
 				AA0200000000000000000004 /* HistoryView.swift */,
 				AA0200000000000000000005 /* SettingsView.swift */,
+				AA0200000000000000000021 /* PollenDetailView.swift */,
+				AA0200000000000000000022 /* LearningTreeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -139,23 +106,10 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		AA0300000000000000000006 /* AllergyBusterWidget */ = {
-			isa = PBXGroup;
-			children = (
-				AA020000000000000000000C /* AllergyBusterWidget.swift */,
-				AA020000000000000000000D /* AllergyBusterWidgetBundle.swift */,
-				AA020000000000000000000E /* Assets.xcassets (widget) */,
-				AA0200000000000000000013 /* AllergyBusterWidget.entitlements */,
-				AA0200000000000000000011 /* Info.plist (widget) */,
-			);
-			path = AllergyBusterWidget;
-			sourceTree = "<group>";
-		};
 		AA0300000000000000000008 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				AA020000000000000000000F /* AllergyBuster.app */,
-				AA020000000000000000000B /* AllergyBusterWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -171,7 +125,6 @@
 				AA0600000000000000000001 /* Sources */,
 				AA0600000000000000000002 /* Frameworks */,
 				AA0600000000000000000003 /* Resources */,
-				AA0600000000000000000005 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
@@ -181,24 +134,6 @@
 			productName = AllergyBuster;
 			productReference = AA020000000000000000000F /* AllergyBuster.app */;
 			productType = "com.apple.product-type.application";
-		};
-		AA0400000000000000000002 /* AllergyBusterWidget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA0800000000000000000003 /* Build configuration list for PBXNativeTarget "AllergyBusterWidget" */;
-			buildPhases = (
-				AA0600000000000000000007 /* Sources */,
-				AA0600000000000000000008 /* Frameworks */,
-				AA0600000000000000000009 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				AA0900000000000000000001 /* PBXTargetDependency */,
-			);
-			name = AllergyBusterWidget;
-			productName = AllergyBusterWidget;
-			productReference = AA020000000000000000000B /* AllergyBusterWidget.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -211,9 +146,6 @@
 				LastUpgradeCheck = 1530;
 				TargetAttributes = {
 					AA0400000000000000000001 = {
-						CreatedOnToolsVersion = 15.3;
-					};
-					AA0400000000000000000002 = {
 						CreatedOnToolsVersion = 15.3;
 					};
 				};
@@ -232,7 +164,6 @@
 			projectRoot = "";
 			targets = (
 				AA0400000000000000000001 /* AllergyBuster */,
-				AA0400000000000000000002 /* AllergyBusterWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -243,14 +174,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA010000000000000000000A /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0600000000000000000009 /* Resources (widget) */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA010000000000000000000E /* Assets.xcassets in Resources (widget) */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,27 +215,13 @@
 				AA0100000000000000000007 /* HistoryViewModel.swift in Sources */,
 				AA0100000000000000000008 /* SettingsViewModel.swift in Sources */,
 				AA0100000000000000000009 /* BackgroundRefreshScheduler.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0600000000000000000007 /* Sources (widget) */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA010000000000000000000C /* AllergyBusterWidget.swift in Sources */,
-				AA010000000000000000000D /* AllergyBusterWidgetBundle.swift in Sources */,
+				AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */,
+				AA0100000000000000000021 /* PollenDetailView.swift in Sources */,
+				AA0100000000000000000022 /* LearningTreeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		AA0900000000000000000001 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = AA0400000000000000000001 /* AllergyBuster */;
-			targetProxy = AA0900000000000000000002 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA0700000000000000000001 /* Debug (project) */ = {
@@ -440,7 +349,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.3.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -471,7 +380,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.3.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -479,70 +388,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tarnlabs.allergybuster;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		AA0700000000000000000005 /* Debug (widget) */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = AllergyBusterWidget/AllergyBusterWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/PackageFrameworks",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = AllergyBusterWidget/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.1.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					shared,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tarnlabs.allergybuster.widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		AA0700000000000000000006 /* Release (widget) */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = AllergyBusterWidget/AllergyBusterWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/PackageFrameworks",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = AllergyBusterWidget/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.1.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					shared,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.tarnlabs.allergybuster.widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -566,15 +411,6 @@
 			buildConfigurations = (
 				AA0700000000000000000003 /* Debug */,
 				AA0700000000000000000004 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AA0800000000000000000003 /* Build configuration list for PBXNativeTarget "AllergyBusterWidget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA0700000000000000000005 /* Debug */,
-				AA0700000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

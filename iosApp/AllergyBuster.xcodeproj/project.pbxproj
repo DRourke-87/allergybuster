@@ -17,6 +17,9 @@
 		AA0100000000000000000008 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000008 /* SettingsViewModel.swift */; };
 		AA0100000000000000000009 /* BackgroundRefreshScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000009 /* BackgroundRefreshScheduler.swift */; };
 		AA010000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000000A /* Assets.xcassets */; };
+		AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000020 /* PollenTypeInfo.swift */; };
+		AA0100000000000000000021 /* PollenDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000021 /* PollenDetailView.swift */; };
+		AA0100000000000000000022 /* LearningTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000022 /* LearningTreeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +36,9 @@
 		AA020000000000000000000F /* AllergyBuster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AllergyBuster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0200000000000000000012 /* AllergyBuster.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AllergyBuster.entitlements; sourceTree = "<group>"; };
+		AA0200000000000000000020 /* PollenTypeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenTypeInfo.swift; sourceTree = "<group>"; };
+		AA0200000000000000000021 /* PollenDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenDetailView.swift; sourceTree = "<group>"; };
+		AA0200000000000000000022 /* LearningTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningTreeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +65,7 @@
 			children = (
 				AA0200000000000000000001 /* AllergyBusterApp.swift */,
 				AA0200000000000000000002 /* ServiceContainer.swift */,
+				AA0200000000000000000020 /* PollenTypeInfo.swift */,
 				AA0300000000000000000003 /* Views */,
 				AA0300000000000000000004 /* ViewModels */,
 				AA0300000000000000000005 /* Services */,
@@ -75,6 +82,8 @@
 				AA0200000000000000000003 /* HomeView.swift */,
 				AA0200000000000000000004 /* HistoryView.swift */,
 				AA0200000000000000000005 /* SettingsView.swift */,
+				AA0200000000000000000021 /* PollenDetailView.swift */,
+				AA0200000000000000000022 /* LearningTreeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -206,6 +215,9 @@
 				AA0100000000000000000007 /* HistoryViewModel.swift in Sources */,
 				AA0100000000000000000008 /* SettingsViewModel.swift in Sources */,
 				AA0100000000000000000009 /* BackgroundRefreshScheduler.swift in Sources */,
+				AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */,
+				AA0100000000000000000021 /* PollenDetailView.swift in Sources */,
+				AA0100000000000000000022 /* LearningTreeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,7 +349,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.3.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -368,7 +380,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.3.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

@@ -26,6 +26,8 @@ final class HomeViewModel: ObservableObject {
     @Published var todayRecommendation: Recommendation? = nil
     @Published var todayFeedback: DailyFeedback?        = nil
     @Published var recentForecasts: [DailyPollen]       = []
+    @Published var userWeights: UserWeights             = .defaultWeights
+    @Published var locationName: String                 = ""
     @Published var learningProgress: LearningProgressState = .initial
     @Published var showRetry: Bool  = false
     @Published var isRetrying: Bool = false
@@ -49,6 +51,7 @@ final class HomeViewModel: ObservableObject {
         feedbackRepo = container.feedbackRepository
         recRepo      = container.recommendationRepository
         submitUseCase = container.submitFeedbackUseCase
+        locationName = UserDefaults(suiteName: AppGroupId)?.string(forKey: "locationName") ?? ""
         ensureLearningStarted()
         startObserving()
     }
@@ -65,7 +68,15 @@ final class HomeViewModel: ObservableObject {
             for await recs in recRepo.observeRecent(limit: 1) {
                 let rec = recs.first(where: { $0.date == self.today })
                 self.todayRecommendation = rec
+                if let name = rec?.locationName, !name.isEmpty {
+                    self.locationName = name
+                }
                 self.updateStuckTimer(recommendation: rec)
+            }
+        })
+        tasks.append(Task {
+            for await weights in feedbackRepo.observeWeights() {
+                if let weights { self.userWeights = weights }
             }
         })
         tasks.append(Task {

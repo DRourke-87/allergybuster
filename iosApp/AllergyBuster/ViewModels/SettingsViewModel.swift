@@ -8,6 +8,8 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var notificationHour: Int   = 7
     @Published var notificationMinute: Int = 0
     @Published var locationName: String    = ""
+    @Published var latitude: Double        = 0
+    @Published var longitude: Double       = 0
     @Published var locationError: String?  = nil
 
     private let locationManager = CLLocationManager()
@@ -29,6 +31,8 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
         notificationHour   = defaults?.integer(forKey: "notifHour")   ?? 7
         notificationMinute = defaults?.integer(forKey: "notifMinute") ?? 0
         locationName       = defaults?.string(forKey: "locationName") ?? ""
+        latitude           = defaults?.double(forKey: "latitude")     ?? 0
+        longitude          = defaults?.double(forKey: "longitude")    ?? 0
     }
 
     func saveNotificationTime() {
@@ -71,6 +75,8 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
             let name = placemarks?.first?.locality ?? placemarks?.first?.country ?? "Unknown"
             Task { @MainActor in
                 self.locationName = name
+                self.latitude  = loc.coordinate.latitude
+                self.longitude = loc.coordinate.longitude
                 let defaults = UserDefaults(suiteName: AppGroupId)
                 defaults?.set(loc.coordinate.latitude,  forKey: "latitude")
                 defaults?.set(loc.coordinate.longitude, forKey: "longitude")

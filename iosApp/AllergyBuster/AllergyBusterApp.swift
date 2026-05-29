@@ -6,6 +6,11 @@ struct AllergyBusterApp: App {
 
     init() {
         BackgroundRefreshScheduler.registerTasks()
+        BackgroundRefreshScheduler.scheduleNextRefresh()
+        // Kick an immediate fetch on launch so the home screen has data without
+        // waiting for the next scheduled background refresh (mirrors Android's
+        // enqueueImmediatePollenFetch at startup).
+        Task { await BackgroundRefreshScheduler.runImmediateFetch() }
     }
 
     var body: some Scene {

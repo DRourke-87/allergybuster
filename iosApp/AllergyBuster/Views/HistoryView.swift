@@ -77,10 +77,10 @@ private struct HistoryRow: View {
     }
 
     private func severityColor(_ s: Int) -> Color {
-        switch s { case 0: .green; case 1: .yellow; case 2: .orange; default: .red }
+        switch s { case 0: .green; case 1: .orange; default: .red }
     }
 
     private func severityLabel(_ s: Int) -> String {
-        switch s { case 0: "None"; case 1: "Mild"; case 2: "Moderate"; default: "Severe" }
+        switch s { case 0: "Fine"; case 1: "Mild"; default: "Bad" }
     }
 }

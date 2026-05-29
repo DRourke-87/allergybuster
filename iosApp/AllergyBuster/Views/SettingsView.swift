@@ -23,11 +23,36 @@ struct SettingsView: View {
                         Text("No location set").foregroundStyle(.secondary)
                     } else {
                         Label(vm.locationName, systemImage: "location.fill")
+                        if vm.latitude != 0 || vm.longitude != 0 {
+                            LabeledContent(
+                                "Coordinates",
+                                value: String(format: "%.4f, %.4f", vm.latitude, vm.longitude)
+                            )
+                            .font(.caption)
+                        }
                     }
                     if let err = vm.locationError {
                         Text(err).foregroundStyle(.red).font(.caption)
                     }
                     Button("Use Current Location") { vm.refreshLocation() }
+                }
+
+                Section("How AllergyBuster works") {
+                    InfoRow(
+                        icon: "brain.head.profile",
+                        title: "How it learns",
+                        detail: "Each day you rate how you felt. Over your first 30 days AllergyBuster tunes a personal sensitivity weight for every pollen type, so the risk level reflects your body, not just the raw counts."
+                    )
+                    InfoRow(
+                        icon: "cloud.sun.fill",
+                        title: "Pollen data",
+                        detail: "Hourly pollen counts come from the Open-Meteo air-quality API for your location and are refreshed each morning."
+                    )
+                    InfoRow(
+                        icon: "cross.case.fill",
+                        title: "Medical disclaimer",
+                        detail: "AllergyBuster provides pollen information only and is not a medical device. It does not diagnose or treat any condition — consult a healthcare professional for medical advice."
+                    )
                 }
 
                 Section("About") {
@@ -36,6 +61,24 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+        }
+    }
+
+    private struct InfoRow: View {
+        let icon: String
+        let title: String
+        let detail: String
+        var body: some View {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundStyle(.green)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.subheadline.weight(.semibold))
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 2)
         }
     }
 

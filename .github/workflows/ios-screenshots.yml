@@ -85,13 +85,15 @@ jobs:
           mkdir -p screenshots
           xcrun simctl launch "$SIMULATOR_UDID" com.tarnlabs.allergybuster
 
-          # Screenshot 1 — launch / splash / onboarding
-          sleep 3
-          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/01-launch.png
+          # Wait for app to fully load
+          sleep 8
+          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/01-home.png
 
-          # Screenshot 2 — settled state (data loaded or empty state)
-          sleep 6
-          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/02-home.png
+          # Tap Settings tab — iPhone 15 Pro Max is 430×932pt; three equal tabs,
+          # Settings is the rightmost: centre ≈ (358, 900)
+          xcrun simctl io "$SIMULATOR_UDID" tap 358 900
+          sleep 2
+          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/02-settings.png
 
       - name: Upload screenshots artifact
         uses: actions/upload-artifact@v4

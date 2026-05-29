@@ -1,0 +1,103 @@
+name: iOS Screenshots
+
+on:
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  screenshots:
+    name: Capture iOS simulator screenshots
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+
+      - name: Cache Kotlin/Native compiler
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build shared XCFramework
+        run: ./gradlew :shared:assembleXCFramework --no-daemon
+
+      - name: Build app for iOS Simulator
+        run: |
+          xcodebuild build \
+            -project iosApp/AllergyBuster.xcodeproj \
+            -scheme AllergyBuster \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+
+      - name: Boot iPhone 15 Pro Max simulator
+        run: |
+          # iPhone 15 Pro Max = 6.7" — the required App Store screenshot size
+          UDID=$(xcrun simctl list devices available --json | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          want = ['iPhone 15 Pro Max', 'iPhone 16 Pro Max', 'iPhone 14 Pro Max']
+          for runtime, devs in sorted(data['devices'].items(), reverse=True):
+              if 'iOS' not in runtime:
+                  continue
+              for name in want:
+                  for d in devs:
+                      if d['name'] == name and d.get('isAvailable'):
+                          print(d['udid'])
+                          raise SystemExit
+          # Fallback: any available iPhone
+          for runtime, devs in sorted(data['devices'].items(), reverse=True):
+              if 'iOS' not in runtime:
+                  continue
+              for d in devs:
+                  if 'iPhone' in d['name'] and d.get('isAvailable'):
+                      print(d['udid'])
+                      raise SystemExit
+          ")
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install app on simulator
+        run: |
+          APP=$(find DerivedData/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "AllergyBuster.app" | head -1)
+          echo "Installing: $APP"
+          xcrun simctl install "$SIMULATOR_UDID" "$APP"
+
+      - name: Launch app and capture screenshots
+        run: |
+          mkdir -p screenshots
+          xcrun simctl launch "$SIMULATOR_UDID" com.tarnlabs.allergybuster
+
+          # Wait for app to fully load
+          sleep 8
+          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/01-home.png
+
+          # Tap Settings tab — iPhone 15 Pro Max is 430×932pt; three equal tabs,
+          # Settings is the rightmost: centre ≈ (358, 900)
+          xcrun simctl io "$SIMULATOR_UDID" tap 358 900
+          sleep 2
+          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/02-settings.png
+
+      - name: Upload screenshots artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-screenshots-${{ github.sha }}
+          path: screenshots/
+          retention-days: 30

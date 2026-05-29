@@ -1,6 +1,5 @@
 import Foundation
 import BackgroundTasks
-import WidgetKit
 import shared
 
 enum BackgroundRefreshScheduler {
@@ -50,7 +49,5 @@ enum BackgroundRefreshScheduler {
                 try? await container.recommendationRepository.save(rec: rec)
             }
         }
-
-        WidgetCenter.shared.reloadAllTimelines()
     }
 }

@@ -11,7 +11,6 @@ import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
 import com.tarnlabs.allergybuster.domain.usecase.ApplyDailyBayesianUseCase
 import com.tarnlabs.allergybuster.domain.usecase.ComputeRecommendationUseCase
 import com.tarnlabs.allergybuster.notification.NotificationHelper
-import com.tarnlabs.allergybuster.widget.AllergyWidgetReceiver
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -68,13 +67,10 @@ class PollenFetchWorker @AssistedInject constructor(
             applyDailyBayesian()
             pollenRepository.pruneOldForecasts()
 
-            // 5. Update Glance widget
-            AllergyWidgetReceiver.updateWidget(applicationContext)
-
-            // 6. Post morning alert (dismissable, with feedback actions)
+            // 5. Post morning alert (dismissable, with feedback actions)
             notificationHelper.postDailyNotification(recommendation)
 
-            // 7. Refresh the persistent status notification in the shade (if enabled)
+            // 6. Refresh the persistent status notification in the shade (if enabled)
             if (settings.persistentNotifEnabled) {
                 notificationHelper.postPersistentNotification(recommendation)
             }

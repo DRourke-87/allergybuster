@@ -107,10 +107,6 @@ dependencies {
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
-    // Glance widget
-    implementation(libs.glance.appwidget)
-    implementation(libs.glance.material3)
-
     // Coroutines (Android dispatcher)
     implementation(libs.kotlinx.coroutines.android)
 

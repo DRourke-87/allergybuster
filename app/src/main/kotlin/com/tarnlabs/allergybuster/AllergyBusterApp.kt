@@ -12,7 +12,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.tarnlabs.allergybuster.data.local.db.AllergyBusterDatabase
 import com.tarnlabs.allergybuster.data.migration.RoomToSqlDelightMigrator
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
 import com.tarnlabs.allergybuster.data.upgrade.AppUpgradeManager
@@ -58,9 +57,6 @@ class AllergyBusterApp : Application(), Configuration.Provider {
     @Inject lateinit var upgradeManager: AppUpgradeManager
     @Inject lateinit var migrator: RoomToSqlDelightMigrator
 
-    /** Exposed so AllergyWidget can access DB without Hilt injection (Glance limitation). */
-    @Inject lateinit var database: AllergyBusterDatabase
-
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val workManagerConfiguration: Configuration
@@ -70,7 +66,7 @@ class AllergyBusterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        // Block once on a fresh upgrade so workers, widget and persistent
+        // Block once on a fresh upgrade so workers and persistent
         // notification all see migrated data. Typical cost is tens of ms.
         runBlocking {
             val transition = upgradeManager.detectTransition()

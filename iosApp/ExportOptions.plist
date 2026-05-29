@@ -18,8 +18,6 @@
     <dict>
         <key>com.tarnlabs.allergybuster</key>
         <string>AllergyBuster AppStore</string>
-        <key>com.tarnlabs.allergybuster.widget</key>
-        <string>AllergyBuster Widget AppStore</string>
     </dict>
 </dict>
 </plist>

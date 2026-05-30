@@ -89,12 +89,6 @@ jobs:
           sleep 8
           xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/01-home.png
 
-          # Tap Settings tab — iPhone 15 Pro Max is 430×932pt; three equal tabs,
-          # Settings is the rightmost: centre ≈ (358, 900)
-          xcrun simctl io "$SIMULATOR_UDID" tap 358 900
-          sleep 2
-          xcrun simctl io "$SIMULATOR_UDID" screenshot screenshots/02-settings.png
-
       - name: Upload screenshots artifact
         uses: actions/upload-artifact@v4
         with:

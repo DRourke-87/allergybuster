@@ -3,7 +3,8 @@ import SwiftUI
 /// Animated tree that grows with the learning progress fraction (0…1).
 /// Mirrors the Android `LearningTreeCard`: a seedling that sprouts a trunk and
 /// up to six leaf clusters as personalisation progresses, with a sun accent
-/// appearing past the halfway mark.
+/// appearing past the halfway mark. Colours come from the shared `AppTheme`
+/// palette so the illustration matches the rest of the app.
 struct LearningTreeView: View {
     /// 0.0 – 1.0
     let progress: Float
@@ -22,13 +23,13 @@ struct LearningTreeView: View {
             var ground = Path()
             ground.move(to: CGPoint(x: w * 0.1, y: groundY))
             ground.addLine(to: CGPoint(x: w * 0.9, y: groundY))
-            context.stroke(ground, with: .color(.green.opacity(0.25)), lineWidth: 2)
+            context.stroke(ground, with: .color(AppTheme.primary.opacity(0.25)), lineWidth: 2)
 
             // Sun accent past halfway
             if p >= 0.5 {
                 let sunAlpha = Double(min((p - 0.5) / 0.2, 1))
-                let sun = Path(ellipseIn: CGRect(x: w * 0.78, y: h * 0.08, width: 22, height: 22))
-                context.fill(sun, with: .color(.yellow.opacity(0.8 * sunAlpha)))
+                let sun = Path(ellipseIn: CGRect(x: w * 0.78, y: h * 0.08, width: 18, height: 18))
+                context.fill(sun, with: .color(AppTheme.tertiary.opacity(0.85 * sunAlpha)))
             }
 
             // Trunk grows with progress
@@ -39,7 +40,7 @@ struct LearningTreeView: View {
             trunk.addLine(to: CGPoint(x: centerX, y: trunkTop))
             context.stroke(
                 trunk,
-                with: .color(Color(red: 0.55, green: 0.40, blue: 0.27)),
+                with: .color(AppTheme.bark),
                 style: StrokeStyle(lineWidth: max(3, 8 * CGFloat(p)), lineCap: .round)
             )
 
@@ -60,11 +61,11 @@ struct LearningTreeView: View {
                 let rect = CGRect(x: positions[i].x - r, y: positions[i].y - r, width: r * 2, height: r * 2)
                 context.fill(
                     Path(ellipseIn: rect),
-                    with: .color(.green.opacity(0.55 + 0.15 * Double(p)))
+                    with: .color(AppTheme.primary.opacity(0.6 + 0.2 * Double(p)))
                 )
             }
         }
-        .frame(height: 130)
+        .frame(height: 88)
         .onAppear { withAnimation(.easeOut(duration: 0.8)) { animated = CGFloat(progress) } }
         .onChange(of: progress) { newValue in
             withAnimation(.easeOut(duration: 0.8)) { animated = CGFloat(newValue) }

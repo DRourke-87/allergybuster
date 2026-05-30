@@ -11,12 +11,26 @@ struct AllergyBusterApp: App {
         // waiting for the next scheduled background refresh (mirrors Android's
         // enqueueImmediatePollenFetch at startup).
         Task { await BackgroundRefreshScheduler.runImmediateFetch() }
+        Self.applyAppearance()
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
+    }
+
+    /// Tints UIKit-backed chrome (navigation large titles) with the forest-green
+    /// palette so the system bars match the SwiftUI screens.
+    private static func applyAppearance() {
+        let green = UIColor(AppTheme.primary)
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.titleTextAttributes = [.foregroundColor: green]
+        appearance.largeTitleTextAttributes = [.foregroundColor: green]
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
     }
 }
 
@@ -30,5 +44,6 @@ struct ContentView: View {
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
+        .tint(AppTheme.primary)
     }
 }

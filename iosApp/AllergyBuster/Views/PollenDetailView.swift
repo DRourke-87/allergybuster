@@ -31,8 +31,8 @@ struct PollenDetailView: View {
                     TrendCard(type: type, forecasts: sorted, today: today)
                 }
 
-                InfoCard(icon: "📅", label: "Season", detail: type.seasonality)
-                InfoCard(icon: "⚠️", label: "Cross-reactions", detail: type.crossReactions)
+                InfoCard(icon: "calendar", label: "Season", detail: type.seasonality)
+                InfoCard(icon: "arrow.triangle.branch", label: "Cross-reactions", detail: type.crossReactions)
                 SensitivityCard(weight: type.weight(from: userWeights))
             }
             .padding(.horizontal, 24)
@@ -40,27 +40,33 @@ struct PollenDetailView: View {
             .padding(.bottom, 40)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background.ignoresSafeArea())
         .presentationDragIndicator(.visible)
     }
 
     private var header: some View {
         HStack(spacing: 12) {
-            Text(type.icon).font(.system(size: 40))
+            Text(type.icon)
+                .font(.title2)
+                .frame(width: 48, height: 48)
+                .background(AppTheme.primaryContainer, in: Circle())
             VStack(alignment: .leading) {
                 Text(type.displayName)
                     .font(.title).fontWeight(.bold)
+                    .foregroundStyle(AppTheme.primary)
                 Text("Pollen details")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
             }
         }
     }
 }
 
 private func levelColour(_ normValue: Float) -> Color {
-    if normValue < 1 { return Color(red: 0.30, green: 0.69, blue: 0.31) }   // green
-    if normValue < 2 { return Color(red: 1.0,  green: 0.60, blue: 0.0)  }   // orange
-    return Color(red: 0.96, green: 0.26, blue: 0.21)                         // red
+    if normValue < 1 { return AppTheme.primary }   // low
+    if normValue < 2 { return AppTheme.tertiary }  // moderate
+    return AppTheme.error                            // high
 }
 
 private func levelLabel(_ normValue: Float) -> String {
@@ -120,7 +126,7 @@ private struct TrendCard: View {
                         Text(weekday(pollen.date))
                             .font(.caption2)
                             .fontWeight(isToday ? .bold : .regular)
-                            .foregroundStyle(isToday ? Color.accentColor : .secondary)
+                            .foregroundStyle(isToday ? AppTheme.primary : Color.secondary)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 100, alignment: .bottom)
@@ -164,11 +170,14 @@ private struct InfoCard: View {
     let detail: String
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text(icon).font(.title3)
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(AppTheme.secondary)
+                .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
                 Text(detail).font(.body)
             }
         }
@@ -192,15 +201,18 @@ private struct SensitivityCard: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text("🎯").font(.title3)
+            Image(systemName: "target")
+                .font(.title3)
+                .foregroundStyle(AppTheme.secondary)
+                .frame(width: 24)
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your sensitivity")
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
                 Text(description).font(.body)
                 ProgressBar(
                     fraction: CGFloat(min(max((weight - 0.1) / (5.0 - 0.1), 0), 1)),
-                    color: .accentColor,
+                    color: AppTheme.primary,
                     height: 6
                 )
                 Text(String(format: "Sensitivity index: %.2f× (default 1.00×)", Double(weight)))
@@ -232,7 +244,7 @@ private extension View {
     func cardBackground() -> some View {
         self
             .padding(16)
-            .background(Color(.secondarySystemBackground))
+            .background(AppTheme.surfaceVariant)
             .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }

@@ -20,6 +20,7 @@
 		AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000020 /* PollenTypeInfo.swift */; };
 		AA0100000000000000000021 /* PollenDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000021 /* PollenDetailView.swift */; };
 		AA0100000000000000000022 /* LearningTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000022 /* LearningTreeView.swift */; };
+		AA0100000000000000000023 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000023 /* Palette.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		AA0200000000000000000020 /* PollenTypeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenTypeInfo.swift; sourceTree = "<group>"; };
 		AA0200000000000000000021 /* PollenDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenDetailView.swift; sourceTree = "<group>"; };
 		AA0200000000000000000022 /* LearningTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningTreeView.swift; sourceTree = "<group>"; };
+		AA0200000000000000000023 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				AA0200000000000000000001 /* AllergyBusterApp.swift */,
 				AA0200000000000000000002 /* ServiceContainer.swift */,
 				AA0200000000000000000020 /* PollenTypeInfo.swift */,
+				AA0300000000000000000006 /* Theme */,
 				AA0300000000000000000003 /* Views */,
 				AA0300000000000000000004 /* ViewModels */,
 				AA0300000000000000000005 /* Services */,
@@ -104,6 +107,14 @@
 				AA0200000000000000000009 /* BackgroundRefreshScheduler.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		AA0300000000000000000006 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				AA0200000000000000000023 /* Palette.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		AA0300000000000000000008 /* Products */ = {
@@ -218,6 +229,7 @@
 				AA0100000000000000000020 /* PollenTypeInfo.swift in Sources */,
 				AA0100000000000000000021 /* PollenDetailView.swift in Sources */,
 				AA0100000000000000000022 /* LearningTreeView.swift in Sources */,
+				AA0100000000000000000023 /* Palette.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,7 +361,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -380,7 +392,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

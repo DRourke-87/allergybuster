@@ -15,4 +15,6 @@ actual class DatabaseDriverFactory {
         val dbPath = if (containerPath != null) "$containerPath/$DB_NAME" else DB_NAME
         return NativeSqliteDriver(AllergyBusterDatabase.Schema, dbPath)
     }
+
+    fun createDatabase(): AllergyBusterDatabase = AllergyBusterDatabase(createDriver())
 }

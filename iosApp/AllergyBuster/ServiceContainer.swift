@@ -14,7 +14,7 @@ final class ServiceContainer {
     let computeRecommendationUseCase: ComputeRecommendationUseCase
 
     private init() {
-        let db = AllergyBusterDatabase.companion.invoke(driver: DatabaseDriverFactory().createDriver())
+        let db = DatabaseDriverFactory().createDatabase()
         let api = OpenMeteoApiClient()
 
         pollenRepository            = PollenRepository(db: db, api: api)

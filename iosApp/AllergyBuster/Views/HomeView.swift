@@ -68,7 +68,7 @@ private struct AppHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("AllergyBuster")
-                .font(.largeTitle).fontWeight(.bold)
+                .font(.title2).fontWeight(.bold)
                 .foregroundStyle(AppTheme.primary)
             if !locationName.isEmpty {
                 Text(locationName)

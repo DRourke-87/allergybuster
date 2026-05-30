@@ -2,7 +2,7 @@ import Foundation
 import shared
 
 struct HistoryDay {
-    let recommendation: Recommendation
+    let recommendation: Recommendation_
     let feedback: DailyFeedback?
 }
 
@@ -14,7 +14,7 @@ final class HistoryViewModel: ObservableObject {
     private let feedbackRepo: FeedbackRepository
     private var tasks: [Task<Void, Never>] = []
 
-    private var latestRecs:      [Recommendation] = []
+    private var latestRecs:      [Recommendation_] = []
     private var latestFeedbacks: [DailyFeedback]  = []
 
     init(container: ServiceContainer = .shared) {

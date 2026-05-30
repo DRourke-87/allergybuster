@@ -8,11 +8,26 @@ struct HistoryView: View {
         NavigationStack {
             Group {
                 if vm.historyDays.isEmpty {
-                    ContentUnavailableView(
-                        "No History Yet",
-                        systemImage: "calendar",
-                        description: Text("Your pollen history will appear here as you use the app.")
-                    )
+                    if #available(iOS 17, *) {
+                        ContentUnavailableView(
+                            "No History Yet",
+                            systemImage: "calendar",
+                            description: Text("Your pollen history will appear here as you use the app.")
+                        )
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "calendar")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                            Text("No History Yet")
+                                .font(.headline)
+                            Text("Your pollen history will appear here as you use the app.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                    }
                 } else {
                     List(vm.historyDays, id: \.recommendation.date) { day in
                         HistoryRow(day: day)
@@ -45,6 +60,8 @@ private struct HistoryRow: View {
         return "\(parts[2])/\(parts[1])/\(parts[0])"
     }
 
+    private var topContributors: [String] { day.recommendation.topContributors }
+
     var body: some View {
         HStack(spacing: 14) {
             Text(levelEmoji)
@@ -53,8 +70,8 @@ private struct HistoryRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(formattedDate).font(.subheadline).fontWeight(.semibold)
-                if let contributors = day.recommendation.topContributors as? [String], !contributors.isEmpty {
-                    Text(contributors.prefix(2).joined(separator: ", "))
+                if !topContributors.isEmpty {
+                    Text(topContributors.prefix(2).joined(separator: ", "))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

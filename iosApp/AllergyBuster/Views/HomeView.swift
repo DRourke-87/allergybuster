@@ -67,7 +67,7 @@ struct HomeView: View {
 // MARK: - Sub-components
 
 private struct RecommendationCard: View {
-    let rec: Recommendation
+    let rec: Recommendation_
 
     var levelColor: Color {
         switch rec.level {
@@ -271,3 +271,4 @@ private struct LoadingCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
+

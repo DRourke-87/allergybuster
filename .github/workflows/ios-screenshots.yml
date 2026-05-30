@@ -32,9 +32,6 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build shared XCFramework
-        run: ./gradlew :shared:assembleXCFramework --no-daemon
-
       - name: Build app for iOS Simulator
         run: |
           xcodebuild build \

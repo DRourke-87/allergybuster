@@ -221,11 +221,14 @@ The version in `main` should always reflect what is (or is about to be) shipped.
 
 Two files must be kept in sync:
 
-1. **`app/build.gradle.kts`** — `versionName` field (Android):
+1. **`app/build.gradle.kts`** — `versionName` **and** `versionCode` (Android):
    ```kotlin
+   versionCode = 8         // ← increment by 1 every release (integer)
    versionName = "1.2.5"   // ← update this
    ```
-   Leave `versionCode` alone — CI sets it automatically to the GitHub Actions run number.
+   `versionCode` is **manual** — bump it by one for each release. It is not set
+   by CI, and it must increase sequentially because `AppUpgradeManager` reads it
+   via `BuildConfig.VERSION_CODE` to detect upgrades and run data migrations.
 
 2. **`iosApp/AllergyBuster.xcodeproj/project.pbxproj`** — `MARKETING_VERSION` field (iOS).
    It appears twice (Debug + Release on the app target); update both:
@@ -240,6 +243,7 @@ Before pushing a branch that is ready to merge:
 
 - [ ] Decide: bug fix (patch) or new feature (minor)?
 - [ ] Update `versionName` in `app/build.gradle.kts`
+- [ ] Increment `versionCode` by 1 in `app/build.gradle.kts`
 - [ ] Update both `MARKETING_VERSION` entries in `project.pbxproj`
 - [ ] Commit the version bump with message `Bump version to X.Y.Z`
 

@@ -32,7 +32,7 @@ struct SettingsView: View {
                         }
                     }
                     if let err = vm.locationError {
-                        Text(err).foregroundStyle(.red).font(.caption)
+                        Text(err).foregroundStyle(AppTheme.error).font(.caption)
                     }
                     Button("Use Current Location") { vm.refreshLocation() }
                 }
@@ -62,6 +62,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
+        .tint(AppTheme.primary)
     }
 
     private struct InfoRow: View {
@@ -71,7 +72,7 @@ struct SettingsView: View {
         var body: some View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: icon)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(AppTheme.primary)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(.subheadline.weight(.semibold))

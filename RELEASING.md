@@ -43,8 +43,7 @@ it's ever compromised.
 ## Cutting a release
 
 ```sh
-# 1. Bump versionName in app/build.gradle.kts if needed
-#    (versionCode is set automatically from the GitHub Actions run number).
+# 1. Bump versionName AND increment versionCode (by 1) in app/build.gradle.kts.
 # 2. Make sure main is green.
 # 3. Tag and push.
 git tag v1.0.0
@@ -88,9 +87,10 @@ uploading.
 
 ## Versioning
 
-- `versionCode`: defaults to `1` locally; CI sets it to
-  `ALLERGYBUSTER_VERSION_CODE = github.run_number` so every release is
-  monotonically higher than the last. Don't manually edit.
+- `versionCode`: **manual** — increment by 1 in `app/build.gradle.kts` for every
+  release. It is not set by CI. It must increase monotonically because
+  `AppUpgradeManager` reads it via `BuildConfig.VERSION_CODE` to detect upgrades
+  and run data migrations, so each shipped build needs a higher, meaningful code.
 - `versionName`: human-readable, edit in `app/build.gradle.kts` before tagging
   (semver: `1.0.0`, `1.0.1`, …).
 - Git tag: must match `v*.*.*` to trigger the release workflow.

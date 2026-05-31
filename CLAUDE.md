@@ -25,7 +25,7 @@ AllergyBuster/
 ├── docs/                # GitHub Pages site (privacy policy, screenshots)
 ├── playstore/           # Play Console copy and graphics
 ├── tools/               # Supporting scripts (play-console-dashboard)
-├── codemagic.yaml       # iOS CI/CD (Codemagic)
+├── .github/workflows/   # CI: release.yml (Android AAB), ios-build.yml, ios-screenshots.yml
 ├── RELEASING.md         # Android release runbook
 └── gradle/libs.versions.toml  # Gradle version catalogue
 ```
@@ -221,18 +221,21 @@ The version in `main` should always reflect what is (or is about to be) shipped.
 
 Two files must be kept in sync:
 
-1. **`app/build.gradle.kts`** — `versionName` field (Android):
+1. **`app/build.gradle.kts`** — `versionName` **and** `versionCode` (Android):
    ```kotlin
+   versionCode = 8         // ← increment by 1 every release (integer)
    versionName = "1.2.5"   // ← update this
    ```
-   Leave `versionCode` alone — CI sets it automatically to the GitHub Actions run number.
+   `versionCode` is **manual** — bump it by one for each release. It is not set
+   by CI, and it must increase sequentially because `AppUpgradeManager` reads it
+   via `BuildConfig.VERSION_CODE` to detect upgrades and run data migrations.
 
 2. **`iosApp/AllergyBuster.xcodeproj/project.pbxproj`** — `MARKETING_VERSION` field (iOS).
    It appears twice (Debug + Release on the app target); update both:
    ```
    MARKETING_VERSION = 1.2.5;
    ```
-   Leave `CURRENT_PROJECT_VERSION` alone — Codemagic manages it.
+   Leave `CURRENT_PROJECT_VERSION` alone — it is managed by the build/CI.
 
 ### Checklist for every branch
 
@@ -240,6 +243,7 @@ Before pushing a branch that is ready to merge:
 
 - [ ] Decide: bug fix (patch) or new feature (minor)?
 - [ ] Update `versionName` in `app/build.gradle.kts`
+- [ ] Increment `versionCode` by 1 in `app/build.gradle.kts`
 - [ ] Update both `MARKETING_VERSION` entries in `project.pbxproj`
 - [ ] Commit the version bump with message `Bump version to X.Y.Z`
 
@@ -260,9 +264,18 @@ Signing vars (CI secrets or `keystore.properties`):
 
 ### iOS
 
-CI: Codemagic (`codemagic.yaml`).
-- `ios-simulator` workflow: triggers on push to `main` or `claude/*` branches.
-- `ios-release` workflow: triggers on `v*.*.*` tags, archives and submits to TestFlight.
+CI: GitHub Actions (macOS runner). All iOS workflows are **manual**
+(`workflow_dispatch`) — there is no automatic iOS build.
+- `ios-build.yml`: builds an **unsigned `.ipa`** artifact for sideloading onto a
+  real device (e.g. Sideloadly / AltStore on Windows, signed with a free Apple
+  ID). No Apple Developer account or signing secrets required.
+- `ios-screenshots.yml`: builds for the simulator and captures App Store screenshots.
+
+**TestFlight** is not wired up yet. It requires a paid Apple Developer Program
+membership, an App Store Connect app record, distribution signing (certificate +
+provisioning profile stored as repo secrets) and an upload step. When that is in
+place, add a separate signed workflow (triggered on `v*.*.*` tags, mirroring the
+Android `release.yml`).
 
 ---
 
@@ -307,10 +320,15 @@ When writing new tests follow the existing backtick naming convention:
 
 ---
 
-## CI branch patterns
+## CI overview
 
-Codemagic `ios-simulator` workflow triggers on:
-- `main`
-- `claude/*`
+GitHub Actions only (no Codemagic):
 
-Feature branches should follow `claude/<description>` naming to get automatic iOS CI.
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `release.yml` | `v*.*.*` tag / dispatch | Build + sign Android release AAB (runs lint + unit tests first) |
+| `ios-build.yml` | manual | Build unsigned iOS `.ipa` for sideloading |
+| `ios-screenshots.yml` | manual | Capture iOS simulator screenshots |
+
+There are no build-on-every-push workflows; lint and unit tests run as part of
+`release.yml`. Feature branches still follow `claude/<description>` naming.

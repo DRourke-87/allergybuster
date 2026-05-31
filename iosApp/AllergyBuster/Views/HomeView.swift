@@ -9,12 +9,7 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    if !vm.locationName.isEmpty {
-                        Label(vm.locationName, systemImage: "location.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    AppHeader(locationName: vm.locationName)
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
@@ -36,6 +31,7 @@ struct HomeView: View {
                             }
                             .disabled(vm.isRetrying)
                             .buttonStyle(.bordered)
+                            .tint(AppTheme.primary)
                         }
                     }
 
@@ -50,9 +46,8 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 24)
             }
-            .background(Color(.systemBackground))
-            .navigationTitle("AllergyBuster")
-            .navigationBarTitleDisplayMode(.large)
+            .background(AppTheme.background.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $selectedType) { type in
                 PollenDetailView(
                     type: type,
@@ -61,50 +56,88 @@ struct HomeView: View {
                 )
             }
         }
+        .tint(AppTheme.primary)
     }
 }
 
 // MARK: - Sub-components
 
+private struct AppHeader: View {
+    let locationName: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("AllergyBuster")
+                .font(.title2).fontWeight(.bold)
+                .foregroundStyle(AppTheme.primary)
+            if !locationName.isEmpty {
+                Text(locationName)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 private struct RecommendationCard: View {
     let rec: Recommendation_
 
-    var levelColor: Color {
+    private var container: Color   { AppTheme.levelContainer(rec.level) }
+    private var onContainer: Color { AppTheme.onLevelContainer(rec.level) }
+    private var accent: Color      { AppTheme.levelAccent(rec.level) }
+
+    private var icon: String {
         switch rec.level {
-        case 0: return .green.opacity(0.15)
-        case 1: return .yellow.opacity(0.2)
-        case 2: return .orange.opacity(0.2)
-        default: return Color(.systemGray6)
+        case 0:  return "leaf.fill"
+        case 1:  return "wind"
+        case 2:  return "sun.max.fill"
+        default: return "hourglass"
         }
     }
 
-    var emoji: String {
-        switch rec.level { case 0: "✅"; case 1: "⚠️"; case 2: "🟠"; default: "⏳" }
-    }
-
-    var levelLabel: String {
-        switch rec.level { case 0: "Low Risk"; case 1: "Moderate Risk"; case 2: "High Risk"; default: "Unknown" }
+    private var subtitle: String? {
+        switch rec.level {
+        case 0:  return "Get out and enjoy the fresh air!"
+        case 1:  return "Hay fever sufferers may wish to take precautions"
+        case 2:  return "High risk for hay fever sufferers today"
+        default: return nil
+        }
     }
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(emoji).font(.system(size: 52))
-            Text(levelLabel)
-                .font(.title2).fontWeight(.bold)
+            Image(systemName: icon)
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundStyle(accent)
+                .frame(width: 64, height: 64)
+                .background(accent.opacity(0.15), in: Circle())
+
             Text(rec.advice)
-                .font(.subheadline)
+                .font(.title3).fontWeight(.bold)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-            if rec.isStale {
-                Label("Based on yesterday's data", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                .foregroundStyle(onContainer)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(onContainer.opacity(0.8))
             }
+            if rec.isStale {
+                Text("Based on yesterday's data")
+                    .font(.caption)
+                    .foregroundStyle(onContainer.opacity(0.65))
+            }
+            Text("Pollen information only — not medical advice")
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(onContainer.opacity(0.5))
         }
-        .padding(24)
+        .padding(28)
         .frame(maxWidth: .infinity)
-        .background(levelColor)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .background(container)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
 
@@ -114,27 +147,36 @@ private struct ContributorsRow: View {
 
     var body: some View {
         if !contributors.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Today's main pollen sources")
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
                 Text("Tap any source for details, trends and cross-reactions")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.7))
                 HStack(spacing: 8) {
                     ForEach(contributors.prefix(4), id: \.self) { name in
                         Button { onTap(name) } label: {
                             Text(name)
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.accentColor.opacity(0.15))
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(AppTheme.onPrimaryContainer)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(AppTheme.primaryContainer)
+                                .overlay(
+                                    Capsule().stroke(AppTheme.primary.opacity(0.3), lineWidth: 1)
+                                )
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.top, 4)
             }
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppTheme.surfaceVariant)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
     }
 }
@@ -145,34 +187,39 @@ private struct FeedbackSection: View {
     @State private var selectedSeverity: Int? = nil
 
     // Matches the shared model + Android: 0=Fine, 1=Mild, 2=Bad.
-    private let labels  = ["🌿 Fine", "🌾 Mild", "🌻 Bad"]
-    private let colors: [Color] = [.green, .orange, .red]
+    private let labels  = ["Fine", "Mild", "Bad"]
+    private let icons   = ["leaf.fill", "wind", "sun.max.fill"]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("How are you feeling today?").font(.headline)
-            if existingFeedback != nil {
-                Text("Tap again to change your answer.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Your feedback helps personalise your pollen sensitivity.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Text("How are you feeling today?")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.onSurfaceVariant)
+            Text(existingFeedback != nil
+                 ? "Tap again to change your answer."
+                 : "Your feedback helps personalise your pollen sensitivity.")
+                .font(.caption)
+                .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.7))
             HStack(spacing: 8) {
                 ForEach(0..<3) { i in
+                    let isSelected = selectedSeverity == i
                     Button {
                         selectedSeverity = i
                         onSubmit(i)
                     } label: {
-                        Text(labels[i])
+                        Label(labels[i], systemImage: icons[i])
+                            .labelStyle(.titleAndIcon)
                             .font(.subheadline.weight(.medium))
                             .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
-                            .background(colors[i].opacity(selectedSeverity == i ? 0.9 : 0.15))
-                            .foregroundStyle(selectedSeverity == i ? .white : .primary)
+                            .foregroundStyle(isSelected ? AppTheme.onPrimary : AppTheme.primary)
+                            .background(isSelected ? AppTheme.primary : Color.clear)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AppTheme.primary.opacity(isSelected ? 0 : 0.6), lineWidth: 1.5)
+                            )
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
@@ -180,7 +227,7 @@ private struct FeedbackSection: View {
             }
         }
         .padding(16)
-        .background(Color(.systemGray6))
+        .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .onAppear { selectedSeverity = existingFeedback.map { Int($0.severity) } }
     }
@@ -189,11 +236,11 @@ private struct FeedbackSection: View {
 private struct ForecastMiniChart: View {
     let forecasts: [DailyPollen]
 
-    private let colors: [Color] = [.green, .yellow, .orange, .red, .purple]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("7-Day Forecast").font(.headline)
+            Text("7-Day Forecast")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.onSurfaceVariant)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
                     ForEach(forecasts.suffix(7), id: \.date) { day in
@@ -203,11 +250,11 @@ private struct ForecastMiniChart: View {
                         VStack(spacing: 4) {
                             Spacer(minLength: 0)
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.green.opacity(0.7))
+                                .fill(AppTheme.primary.opacity(0.75))
                                 .frame(width: 24, height: barHeight)
                             Text(shortDate(day.date))
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(AppTheme.onSurfaceVariant)
                         }
                         .frame(height: 80, alignment: .bottom)
                     }
@@ -215,7 +262,8 @@ private struct ForecastMiniChart: View {
             }
         }
         .padding(16)
-        .background(Color(.systemGray6))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -232,24 +280,31 @@ private struct LearningProgressCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(progress.isMature ? "🌳 Learning Complete" : "🌱 Learning…")
-                    .font(.headline)
+                Text(progress.isMature ? "Fully personalised" : "Learning your allergies")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
                 Spacer()
                 Text("\(Int(progress.progressFraction * 100))%")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.7))
             }
-            LearningTreeView(progress: progress.progressFraction)
-            ProgressView(value: Double(progress.progressFraction))
-                .tint(.green)
-            Text(progress.isMature
-                 ? "Fully personalised to your responses."
-                 : "\(progress.feedbackCount) feedback entries · \(progress.daysElapsed) days")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 14) {
+                LearningTreeView(progress: progress.progressFraction)
+                    .frame(width: 88)
+                VStack(alignment: .leading, spacing: 6) {
+                    ProgressView(value: Double(progress.progressFraction))
+                        .tint(AppTheme.primary)
+                    Text(progress.isMature
+                         ? "Fully personalised to your responses."
+                         : "Day \(progress.daysElapsed) of 30 · \(progress.feedbackCount) check-ins")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.8))
+                }
+            }
         }
         .padding(16)
-        .background(Color(.systemGray6))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
@@ -259,16 +314,15 @@ private struct LoadingCard: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            ProgressView()
+            ProgressView().tint(AppTheme.primary)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AppTheme.onSurfaceVariant)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(40)
-        .background(Color(.systemGray6))
+        .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
-

@@ -76,4 +76,5 @@ jobs:
         if: always()
         run: rm -f app/keystore.jks
 
-  # iOS release is handled by Codemagic (see codemagic.yaml)
+  # iOS has no automated release yet (TestFlight needs a paid Apple account +
+  # a signed workflow). For sideloading, run ios-build.yml manually.

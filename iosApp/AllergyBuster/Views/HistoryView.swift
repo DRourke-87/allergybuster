@@ -31,12 +31,16 @@ struct HistoryView: View {
                 } else {
                     List(vm.historyDays, id: \.recommendation.date) { day in
                         HistoryRow(day: day)
+                            .listRowBackground(AppTheme.surfaceVariant)
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("History")
         }
+        .tint(AppTheme.primary)
     }
 }
 
@@ -44,13 +48,13 @@ private struct HistoryRow: View {
     let day: HistoryDay
 
     private var levelColor: Color {
-        switch day.recommendation.level {
-        case 0: .green; case 1: .yellow; case 2: .orange; default: .gray
-        }
+        AppTheme.levelAccent(day.recommendation.level)
     }
 
-    private var levelEmoji: String {
-        switch day.recommendation.level { case 0: "✅"; case 1: "⚠️"; case 2: "🟠"; default: "⏳" }
+    private var levelIcon: String {
+        switch day.recommendation.level {
+        case 0: "leaf.fill"; case 1: "wind"; case 2: "sun.max.fill"; default: "hourglass"
+        }
     }
 
     private var formattedDate: String {
@@ -64,9 +68,11 @@ private struct HistoryRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Text(levelEmoji)
-                .font(.title2)
-                .frame(width: 36)
+            Image(systemName: levelIcon)
+                .font(.title3)
+                .foregroundStyle(levelColor)
+                .frame(width: 36, height: 36)
+                .background(levelColor.opacity(0.15), in: Circle())
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(formattedDate).font(.subheadline).fontWeight(.semibold)
@@ -94,7 +100,7 @@ private struct HistoryRow: View {
     }
 
     private func severityColor(_ s: Int) -> Color {
-        switch s { case 0: .green; case 1: .orange; default: .red }
+        switch s { case 0: AppTheme.primary; case 1: AppTheme.tertiary; default: AppTheme.error }
     }
 
     private func severityLabel(_ s: Int) -> String {

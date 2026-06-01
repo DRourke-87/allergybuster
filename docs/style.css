@@ -367,6 +367,54 @@ p { margin: 0 0 1em; }
   font-size: 0.95rem;
 }
 
+/* ---------- Beta steps ---------- */
+
+.beta-steps {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.beta-step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.beta-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--green-800);
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.beta-step-body h3 {
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.beta-step-body p {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.97rem;
+  margin-bottom: 16px;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 880px) {

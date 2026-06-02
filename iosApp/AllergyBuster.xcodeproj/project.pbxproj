@@ -21,6 +21,8 @@
 		AA0100000000000000000021 /* PollenDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000021 /* PollenDetailView.swift */; };
 		AA0100000000000000000022 /* LearningTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000022 /* LearningTreeView.swift */; };
 		AA0100000000000000000023 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000023 /* Palette.swift */; };
+		AA0100000000000000000024 /* AppThemeMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000024 /* AppThemeMode.swift */; };
+		AA0100000000000000000025 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000025 /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		AA0200000000000000000021 /* PollenDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollenDetailView.swift; sourceTree = "<group>"; };
 		AA0200000000000000000022 /* LearningTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningTreeView.swift; sourceTree = "<group>"; };
 		AA0200000000000000000023 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		AA0200000000000000000024 /* AppThemeMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppThemeMode.swift; sourceTree = "<group>"; };
+		AA0200000000000000000025 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +91,7 @@
 				AA0200000000000000000005 /* SettingsView.swift */,
 				AA0200000000000000000021 /* PollenDetailView.swift */,
 				AA0200000000000000000022 /* LearningTreeView.swift */,
+				AA0200000000000000000025 /* OnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -113,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0200000000000000000023 /* Palette.swift */,
+				AA0200000000000000000024 /* AppThemeMode.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -230,6 +236,8 @@
 				AA0100000000000000000021 /* PollenDetailView.swift in Sources */,
 				AA0100000000000000000022 /* LearningTreeView.swift in Sources */,
 				AA0100000000000000000023 /* Palette.swift in Sources */,
+				AA0100000000000000000024 /* AppThemeMode.swift in Sources */,
+				AA0100000000000000000025 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,7 +369,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -392,7 +400,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

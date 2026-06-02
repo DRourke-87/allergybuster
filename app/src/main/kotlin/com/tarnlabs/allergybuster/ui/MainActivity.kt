@@ -7,18 +7,24 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.tarnlabs.allergybuster.data.local.datastore.AppSettings
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.ui.navigation.AppNavGraph
 import com.tarnlabs.allergybuster.ui.navigation.BottomNavBar
+import com.tarnlabs.allergybuster.ui.onboarding.OnboardingScreen
 import com.tarnlabs.allergybuster.ui.theme.AllergyBusterTheme
+import com.tarnlabs.allergybuster.ui.theme.ThemeMode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -62,13 +68,27 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            AllergyBusterTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = { BottomNavBar(navController) }
-                ) { padding ->
-                    Box(Modifier.padding(padding)) {
-                        AppNavGraph(navController)
+            val settings by appSettings.settingsFlow.collectAsStateWithLifecycle(
+                initialValue = AppSettings()
+            )
+            val darkTheme = when (settings.themeMode) {
+                ThemeMode.DARK   -> true
+                ThemeMode.LIGHT  -> false
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            AllergyBusterTheme(darkTheme = darkTheme) {
+                if (!settings.onboardingDone) {
+                    OnboardingScreen(
+                        onFinish = { lifecycleScope.launch { appSettings.setOnboardingDone() } }
+                    )
+                } else {
+                    val navController = rememberNavController()
+                    Scaffold(
+                        bottomBar = { BottomNavBar(navController) }
+                    ) { padding ->
+                        Box(Modifier.padding(padding)) {
+                            AppNavGraph(navController)
+                        }
                     }
                 }
             }

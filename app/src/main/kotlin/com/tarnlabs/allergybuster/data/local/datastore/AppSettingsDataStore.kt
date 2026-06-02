@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.tarnlabs.allergybuster.ui.theme.ThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -26,7 +27,8 @@ data class AppSettings(
     val locationLat: Double = 54.66,
     val locationLon: Double = -3.36,
     val locationName: String = "",
-    val persistentNotifEnabled: Boolean = true
+    val persistentNotifEnabled: Boolean = true,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM
 )
 
 @Singleton
@@ -42,6 +44,7 @@ class AppSettingsDataStore @Inject constructor(
         val LOCATION_NAME            = stringPreferencesKey("location_name")
         val LEARNING_STARTED_AT      = longPreferencesKey("learning_started_at")
         val PERSISTENT_NOTIF_ENABLED = booleanPreferencesKey("persistent_notif_enabled")
+        val THEME_MODE               = stringPreferencesKey("theme_mode")
         val ROOM_MIGRATION_DONE      = booleanPreferencesKey("room_migration_done")
         val LAST_APP_VERSION_CODE    = intPreferencesKey("last_app_version_code")
     }
@@ -54,7 +57,9 @@ class AppSettingsDataStore @Inject constructor(
             locationLat             = prefs[Keys.LOCATION_LAT]             ?: 54.66,
             locationLon             = prefs[Keys.LOCATION_LON]             ?: -3.36,
             locationName            = prefs[Keys.LOCATION_NAME]            ?: "",
-            persistentNotifEnabled  = prefs[Keys.PERSISTENT_NOTIF_ENABLED] ?: true
+            persistentNotifEnabled  = prefs[Keys.PERSISTENT_NOTIF_ENABLED] ?: true,
+            themeMode               = prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
+                ?: ThemeMode.SYSTEM
         )
     }
 
@@ -96,6 +101,12 @@ class AppSettingsDataStore @Inject constructor(
     suspend fun setPersistentNotifEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.PERSISTENT_NOTIF_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.THEME_MODE] = mode.name
         }
     }
 

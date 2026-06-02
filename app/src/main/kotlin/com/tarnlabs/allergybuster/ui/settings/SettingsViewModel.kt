@@ -6,6 +6,7 @@ import com.tarnlabs.allergybuster.data.local.datastore.AppSettings
 import com.tarnlabs.allergybuster.data.local.datastore.AppSettingsDataStore
 import com.tarnlabs.allergybuster.data.location.LocationProvider
 import com.tarnlabs.allergybuster.notification.NotificationHelper
+import com.tarnlabs.allergybuster.ui.theme.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,5 +41,9 @@ class SettingsViewModel @Inject constructor(
             dataStore.setPersistentNotifEnabled(enabled)
             if (!enabled) notificationHelper.cancelPersistentNotification()
         }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { dataStore.setThemeMode(mode) }
     }
 }

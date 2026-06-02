@@ -35,6 +35,11 @@ struct AllergyBusterApp: App {
 }
 
 struct ContentView: View {
+    @AppStorage("themeMode", store: UserDefaults(suiteName: AppGroupId))
+    private var themeMode: AppThemeMode = .system
+    @AppStorage("onboardingDone", store: UserDefaults(suiteName: AppGroupId))
+    private var onboardingDone = false
+
     var body: some View {
         TabView {
             HomeView()
@@ -45,5 +50,13 @@ struct ContentView: View {
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
         .tint(AppTheme.primary)
+        .preferredColorScheme(themeMode.colorScheme)
+        .fullScreenCover(isPresented: Binding(
+            get: { !onboardingDone },
+            set: { presented in onboardingDone = !presented }
+        )) {
+            OnboardingView(onFinish: { onboardingDone = true })
+                .preferredColorScheme(themeMode.colorScheme)
+        }
     }
 }

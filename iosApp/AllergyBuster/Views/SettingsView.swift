@@ -2,10 +2,26 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
+    @AppStorage("themeMode", store: UserDefaults(suiteName: AppGroupId))
+    private var themeMode: AppThemeMode = .system
+    @Environment(\.openURL) private var openURL
+
+    // TODO: replace with the real App Store ID once the listing exists.
+    private let appStoreId = "0000000000"
+    private let privacyURL = URL(string: "https://drourke-87.github.io/allergybuster/PRIVACY.html")!
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("Appearance") {
+                    Picker("Theme", selection: $themeMode) {
+                        ForEach(AppThemeMode.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
                 Section("Daily Notification") {
                     DatePicker(
                         "Reminder time",
@@ -53,6 +69,21 @@ struct SettingsView: View {
                         title: "Medical disclaimer",
                         detail: "AllergyBuster provides pollen information only and is not a medical device. It does not diagnose or treat any condition — consult a healthcare professional for medical advice."
                     )
+                }
+
+                Section("Feedback") {
+                    Button {
+                        let url = URL(string: "https://apps.apple.com/app/id\(appStoreId)?action=write-review")
+                        if let url { openURL(url) }
+                    } label: {
+                        Label("Rate AllergyBuster", systemImage: "star.fill")
+                    }
+                }
+
+                Section("Privacy") {
+                    Link(destination: privacyURL) {
+                        Label("Privacy policy", systemImage: "lock.shield")
+                    }
                 }
 
                 Section("About") {

@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.sp
 // Nature theme is always applied — dynamic color is intentionally skipped
 // so the spring/summer palette remains consistent across all Android versions.
 
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 private val LightColors = lightColorScheme(
     primary                = ForestGreen,
     onPrimary              = OnForestGreen,

@@ -1,4 +1,17 @@
 import SwiftUI
+import CoreLocation
+
+private final class LocationPermissionRequester: NSObject, CLLocationManagerDelegate, ObservableObject {
+    private let manager = CLLocationManager()
+    override init() {
+        super.init()
+        manager.delegate = self
+    }
+    func requestIfNeeded() {
+        guard manager.authorizationStatus == .notDetermined else { return }
+        manager.requestWhenInUseAuthorization()
+    }
+}
 
 private struct OnboardingPage: Identifiable {
     let id = UUID()
@@ -29,6 +42,7 @@ struct OnboardingView: View {
     /// Called when the user skips or finishes the walkthrough.
     let onFinish: () -> Void
 
+    @StateObject private var locationPermission = LocationPermissionRequester()
     @State private var selection = 0
 
     private var isLastPage: Bool { selection == onboardingPages.count - 1 }
@@ -64,6 +78,7 @@ struct OnboardingView: View {
 
             Button(action: {
                 if isLastPage {
+                    locationPermission.requestIfNeeded()
                     onFinish()
                 } else {
                     withAnimation { selection += 1 }

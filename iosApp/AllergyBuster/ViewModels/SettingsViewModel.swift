@@ -64,8 +64,25 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
 
     func refreshLocation() {
         locationError = nil
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.requestLocation()
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.requestLocation()
+        case .denied, .restricted:
+            locationError = "Location access is disabled. Go to Settings → AllergyBuster to enable it."
+        @unknown default:
+            locationManager.requestWhenInUseAuthorization()
+        }
+    }
+
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor in
+            if manager.authorizationStatus == .authorizedWhenInUse
+                || manager.authorizationStatus == .authorizedAlways {
+                manager.requestLocation()
+            }
+        }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -95,6 +112,7 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if (error as? CLError)?.code == .locationUnknown { return }
         Task { @MainActor in self.locationError = error.localizedDescription }
     }
 }

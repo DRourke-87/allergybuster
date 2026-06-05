@@ -56,6 +56,7 @@ struct OnboardingView: View {
                             .multilineTextAlignment(.center)
                     }
                     .padding(.horizontal, 32)
+                    .padding(.bottom, 36)
                     .tag(index)
                 }
             }

@@ -47,9 +47,7 @@ struct HistoryView: View {
 private struct HistoryRow: View {
     let day: HistoryDay
 
-    private var levelColor: Color {
-        AppTheme.levelAccent(day.recommendation.level)
-    }
+    private var levelColor: Color { AppTheme.levelAccent(day.recommendation.level) }
 
     private var levelIcon: String {
         switch day.recommendation.level {
@@ -57,14 +55,21 @@ private struct HistoryRow: View {
         }
     }
 
+    private var levelLabel: String {
+        switch day.recommendation.level {
+        case 0: "Clear"; case 1: "Moderate"; default: "High"
+        }
+    }
+
     private var formattedDate: String {
-        let iso = day.recommendation.date
-        let parts = iso.split(separator: "-")
-        guard parts.count == 3 else { return iso }
+        let parts = day.recommendation.date.split(separator: "-")
+        guard parts.count == 3 else { return day.recommendation.date }
         return "\(parts[2])/\(parts[1])/\(parts[0])"
     }
 
-    private var topContributors: [String] { day.recommendation.topContributors }
+    private var topContributors: [String] {
+        Array(day.recommendation.topContributors.prefix(2))
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -77,7 +82,12 @@ private struct HistoryRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(formattedDate).font(.subheadline).fontWeight(.semibold)
                 if !topContributors.isEmpty {
-                    Text(topContributors.prefix(2).joined(separator: ", "))
+                    Text(topContributors.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if !day.recommendation.locationName.isEmpty {
+                    Text("📍 \(day.recommendation.locationName)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -85,25 +95,30 @@ private struct HistoryRow: View {
 
             Spacer()
 
-            if let fb = day.feedback {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Circle()
-                        .fill(severityColor(Int(fb.severity)))
-                        .frame(width: 10, height: 10)
-                    Text(severityLabel(Int(fb.severity)))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 4) {
+                HistoryChip(label: levelLabel, color: levelColor)
+                if let fb = day.feedback {
+                    let sev = Int(fb.severity)
+                    let label = sev == 0 ? "🌿 Fine" : sev == 1 ? "🌾 Mild" : "🌻 Bad"
+                    let color: Color = sev == 0 ? AppTheme.primary : sev == 1 ? AppTheme.tertiary : AppTheme.error
+                    HistoryChip(label: label, color: color)
                 }
             }
         }
         .padding(.vertical, 4)
     }
+}
 
-    private func severityColor(_ s: Int) -> Color {
-        switch s { case 0: AppTheme.primary; case 1: AppTheme.tertiary; default: AppTheme.error }
-    }
-
-    private func severityLabel(_ s: Int) -> String {
-        switch s { case 0: "Fine"; case 1: "Mild"; default: "Bad" }
+private struct HistoryChip: View {
+    let label: String
+    let color: Color
+    var body: some View {
+        Text(label)
+            .font(.caption2)
+            .fontWeight(.medium)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.18), in: Capsule())
+            .foregroundStyle(color)
     }
 }

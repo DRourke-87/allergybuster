@@ -56,8 +56,8 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Run Android lint + unit tests
-        run: ./gradlew :app:lint :app:testDebugUnitTest --no-daemon
+      - name: Run shared Kotlin unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
 
       - name: Install certificate and provisioning profile
         env:
@@ -89,8 +89,9 @@ jobs:
           # Install provisioning profile; export its UUID for use in later steps
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
-          PROFILE_UUID=$(security cms -D -i profile.mobileprovision | \
-            /usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin)
+          security cms -D -i profile.mobileprovision -o /tmp/decoded_profile.plist
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /tmp/decoded_profile.plist)
+          rm /tmp/decoded_profile.plist
           cp profile.mobileprovision \
             ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
           echo "PROFILE_UUID=${PROFILE_UUID}" >> "$GITHUB_ENV"

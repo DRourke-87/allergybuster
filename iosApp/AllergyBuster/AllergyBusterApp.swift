@@ -24,13 +24,22 @@ struct AllergyBusterApp: App {
     /// palette so the system bars match the SwiftUI screens.
     private static func applyAppearance() {
         let green = UIColor(AppTheme.primary)
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        appearance.titleTextAttributes = [.foregroundColor: green]
-        appearance.largeTitleTextAttributes = [.foregroundColor: green]
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
+        let bg = UIColor(AppTheme.background)
+
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = bg
+        navAppearance.titleTextAttributes = [.foregroundColor: green]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: green]
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = bg
+        UITabBar.appearance().standardAppearance = tabAppearance
+        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
 }
 
@@ -50,6 +59,7 @@ struct ContentView: View {
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
         .tint(AppTheme.primary)
+        .background(AppTheme.background.ignoresSafeArea())
         .preferredColorScheme(themeMode.colorScheme)
         .fullScreenCover(isPresented: Binding(
             get: { !onboardingDone },

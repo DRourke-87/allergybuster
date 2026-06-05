@@ -1,23 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Placeholders replaced at CI time by ios-testflight.yml:
+    TEAM_ID_PLACEHOLDER       ← IOS_TEAM_ID secret (10-char string, e.g. ABC1234567)
+    PROFILE_UUID_PLACEHOLDER  ← UUID extracted from the installed provisioning profile
+-->
 <plist version="1.0">
 <dict>
     <key>method</key>
     <string>app-store</string>
+
     <key>teamID</key>
-    <string>REPLACE_TEAM_ID</string>
-    <key>uploadBitcode</key>
-    <false/>
-    <key>uploadSymbols</key>
-    <true/>
+    <string>TEAM_ID_PLACEHOLDER</string>
+
     <key>signingStyle</key>
     <string>manual</string>
+
     <key>signingCertificate</key>
-    <string>iPhone Distribution</string>
+    <string>Apple Distribution</string>
+
     <key>provisioningProfiles</key>
     <dict>
         <key>com.tarnlabs.allergybuster</key>
-        <string>AllergyBuster AppStore</string>
+        <string>PROFILE_UUID_PLACEHOLDER</string>
     </dict>
+
+    <key>stripSwiftSymbols</key>
+    <true/>
+
+    <key>uploadSymbols</key>
+    <true/>
+
+    <key>compileBitcode</key>
+    <false/>
 </dict>
 </plist>

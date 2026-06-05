@@ -40,6 +40,7 @@ struct HistoryView: View {
             .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("History")
         }
+        .background(AppTheme.background.ignoresSafeArea())
         .tint(AppTheme.primary)
     }
 }

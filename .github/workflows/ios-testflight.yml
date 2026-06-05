@@ -33,7 +33,7 @@ env:
 jobs:
   testflight:
     name: Build & upload to TestFlight
-    runs-on: macos-15
+    runs-on: macos-latest
 
     steps:
       - name: Checkout

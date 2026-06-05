@@ -1,4 +1,17 @@
 import SwiftUI
+import CoreLocation
+
+private final class LocationPermissionRequester: NSObject, CLLocationManagerDelegate, ObservableObject {
+    private let manager = CLLocationManager()
+    override init() {
+        super.init()
+        manager.delegate = self
+    }
+    func requestIfNeeded() {
+        guard manager.authorizationStatus == .notDetermined else { return }
+        manager.requestWhenInUseAuthorization()
+    }
+}
 
 private struct OnboardingPage: Identifiable {
     let id = UUID()
@@ -29,6 +42,7 @@ struct OnboardingView: View {
     /// Called when the user skips or finishes the walkthrough.
     let onFinish: () -> Void
 
+    @StateObject private var locationPermission = LocationPermissionRequester()
     @State private var selection = 0
 
     private var isLastPage: Bool { selection == onboardingPages.count - 1 }
@@ -43,20 +57,21 @@ struct OnboardingView: View {
 
             TabView(selection: $selection) {
                 ForEach(Array(onboardingPages.enumerated()), id: \.element.id) { index, page in
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
                         Text(page.emoji)
-                            .font(.system(size: 64))
+                            .font(.system(size: 48))
                         Text(page.title)
-                            .font(.title.weight(.bold))
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(AppTheme.primary)
                             .multilineTextAlignment(.center)
                         Text(page.body)
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, 16)
                     .tag(index)
                 }
             }
@@ -64,6 +79,7 @@ struct OnboardingView: View {
 
             Button(action: {
                 if isLastPage {
+                    locationPermission.requestIfNeeded()
                     onFinish()
                 } else {
                     withAnimation { selection += 1 }

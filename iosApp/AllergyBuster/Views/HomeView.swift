@@ -35,10 +35,6 @@ struct HomeView: View {
                         }
                     }
 
-                    if !vm.recentForecasts.isEmpty {
-                        ForecastMiniChart(forecasts: vm.recentForecasts)
-                    }
-
                     LearningProgressCard(progress: vm.learningProgress)
 
                     Spacer(minLength: 8)
@@ -230,47 +226,6 @@ private struct FeedbackSection: View {
         .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .onAppear { selectedSeverity = existingFeedback.map { Int($0.severity) } }
-    }
-}
-
-private struct ForecastMiniChart: View {
-    let forecasts: [DailyPollen]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("7-Day Forecast")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.onSurfaceVariant)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(forecasts.suffix(7), id: \.date) { day in
-                        let total = day.alderMax + day.birchMax + day.grassMax
-                                  + day.mugwortMax + day.oliveMax + day.ragweedMax
-                        let barHeight = max(4, min(60, CGFloat(total / 50) * 60))
-                        VStack(spacing: 4) {
-                            Spacer(minLength: 0)
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(AppTheme.primary.opacity(0.75))
-                                .frame(width: 24, height: barHeight)
-                            Text(shortDate(day.date))
-                                .font(.caption2)
-                                .foregroundStyle(AppTheme.onSurfaceVariant)
-                        }
-                        .frame(height: 80, alignment: .bottom)
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.surfaceVariant)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func shortDate(_ iso: String) -> String {
-        let parts = iso.split(separator: "-")
-        guard parts.count == 3 else { return iso }
-        return "\(parts[2])/\(parts[1])"
     }
 }
 

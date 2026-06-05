@@ -52,6 +52,7 @@ struct HomeView: View {
                 )
             }
         }
+        .background(AppTheme.background.ignoresSafeArea())
         .tint(AppTheme.primary)
     }
 }

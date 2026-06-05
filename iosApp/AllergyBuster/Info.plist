@@ -42,6 +42,8 @@
     <array>
         <string>com.tarnlabs.allergybuster.pollenrefresh</string>
     </array>
+    <key>UILaunchScreen</key>
+    <dict/>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>AllergyBuster needs your location to fetch pollen forecasts for your area.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

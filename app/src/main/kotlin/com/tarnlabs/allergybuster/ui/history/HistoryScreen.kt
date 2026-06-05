@@ -83,6 +83,11 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
     }
 }
 
+private fun formattedDate(iso: String): String {
+    val parts = iso.split("-")
+    return if (parts.size == 3) "${parts[2]}/${parts[1]}/${parts[0]}" else iso
+}
+
 @Composable
 private fun HistoryDayRow(day: HistoryDay) {
     val levelIcon = when (day.recommendation.level) {
@@ -126,15 +131,18 @@ private fun HistoryDayRow(day: HistoryDay) {
                 Text(levelIcon, fontSize = 24.sp)
                 Column {
                     Text(
-                        day.recommendation.date,
+                        formattedDate(day.recommendation.date),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        day.recommendation.advice,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    val contributors = day.recommendation.topContributors.take(2)
+                    if (contributors.isNotEmpty()) {
+                        Text(
+                            contributors.joinToString(", "),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Text(
                         "📍 ${day.recommendation.locationName}",
                         style = MaterialTheme.typography.labelSmall,

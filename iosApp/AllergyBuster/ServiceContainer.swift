@@ -3,6 +3,7 @@ import shared
 
 let AppGroupId = "group.com.tarnlabs.allergybuster"
 
+@MainActor
 final class ServiceContainer {
     static let shared = ServiceContainer()
 

@@ -93,8 +93,9 @@ class RecommendationEngineTest {
     }
 
     @Test fun `activePollenLevels uses each type's own baseline`() {
-        // 60 grains/m³: birch (high=100) is below high → level 1; grass (high=50) is above → level 2
-        val active = RecommendationEngine.activePollenLevels(pollen(grass = 60f, birch = 60f))
+        // 40 grains/m³: birch (moderate=50) is below moderate → norm=1.75 → level 1;
+        //               grass (moderate=30) is above moderate → norm=2.5 → level 2
+        val active = RecommendationEngine.activePollenLevels(pollen(grass = 40f, birch = 40f))
         val birch = active.first { it.type.displayName == "Birch" }
         val grass = active.first { it.type.displayName == "Grass" }
         assertEquals(1, birch.level)

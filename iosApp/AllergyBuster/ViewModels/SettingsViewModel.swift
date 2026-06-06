@@ -1,10 +1,9 @@
 import Foundation
 import UserNotifications
-import CoreLocation
 import shared
 
 @MainActor
-final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class SettingsViewModel: ObservableObject {
     @Published var notificationHour: Int   = 7
     @Published var notificationMinute: Int = 0
     @Published var locationName: String    = ""
@@ -12,7 +11,7 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var longitude: Double       = 0
     @Published var locationError: String?  = nil
 
-    private let locationManager = CLLocationManager()
+    private let locationService: LocationService
     private let recRepo:      RecommendationRepository
     private let pollenRepo:   PollenRepository
     private let computeUseCase: ComputeRecommendationUseCase
@@ -21,8 +20,7 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
         recRepo      = container.recommendationRepository
         pollenRepo   = container.pollenRepository
         computeUseCase = container.computeRecommendationUseCase
-        super.init()
-        locationManager.delegate = self
+        locationService = container.locationService
         loadSavedSettings()
     }
 
@@ -64,55 +62,40 @@ final class SettingsViewModel: NSObject, ObservableObject, CLLocationManagerDele
 
     func refreshLocation() {
         locationError = nil
-        switch locationManager.authorizationStatus {
+        switch locationService.authorizationStatus {
         case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
-            locationManager.requestLocation()
+            locationService.requestAuthorization()
         case .denied, .restricted:
             locationError = "Location access is disabled. Go to Settings → AllergyBuster to enable it."
-        @unknown default:
-            locationManager.requestWhenInUseAuthorization()
+        default:
+            Task { await self.fetchForCurrentLocation() }
         }
     }
 
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
-            if manager.authorizationStatus == .authorizedWhenInUse
-                || manager.authorizationStatus == .authorizedAlways {
-                manager.requestLocation()
-            }
+    private func fetchForCurrentLocation() async {
+        guard let loc = await locationService.currentLocation() else {
+            locationError = "Couldn't determine your location. Please try again."
+            return
         }
-    }
+        let lat = loc.coordinate.latitude
+        let lon = loc.coordinate.longitude
+        latitude  = lat
+        longitude = lon
+        let defaults = UserDefaults(suiteName: AppGroupId)
+        defaults?.set(lat, forKey: "latitude")
+        defaults?.set(lon, forKey: "longitude")
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let loc = locations.last else { return }
-        let geocoder = CLGeocoder()
-        geocoder.reverseGeocodeLocation(loc) { placemarks, _ in
-            let name = placemarks?.first?.locality ?? placemarks?.first?.country ?? "Unknown"
-            Task { @MainActor in
-                self.locationName = name
-                self.latitude  = loc.coordinate.latitude
-                self.longitude = loc.coordinate.longitude
-                let defaults = UserDefaults(suiteName: AppGroupId)
-                defaults?.set(loc.coordinate.latitude,  forKey: "latitude")
-                defaults?.set(loc.coordinate.longitude, forKey: "longitude")
-                defaults?.set(name,                     forKey: "locationName")
-                // Refresh pollen data for new location
-                let pollen = try? await self.pollenRepo.fetchAndStore(
-                    lat: loc.coordinate.latitude,
-                    lon: loc.coordinate.longitude
-                )
-                if let pollen {
-                    let rec = try? await self.computeUseCase.invoke(pollen: pollen, isStale: false, locationName: name)
-                    if let rec { try? await self.recRepo.save(rec: rec) }
-                }
-            }
+        // Fetch pollen on the raw coords first so the network call never waits on geocoding.
+        let pollen = try? await pollenRepo.fetchAndStore(lat: lat, lon: lon)
+
+        let name = await locationService.reverseGeocode(loc)
+            ?? String(format: "%.2f°, %.2f°", lat, lon)
+        locationName = name
+        defaults?.set(name, forKey: "locationName")
+
+        if let pollen {
+            let rec = try? await computeUseCase.invoke(pollen: pollen, isStale: false, locationName: name)
+            if let rec { try? await recRepo.save(rec: rec) }
         }
-    }
-
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        if (error as? CLError)?.code == .locationUnknown { return }
-        Task { @MainActor in self.locationError = error.localizedDescription }
     }
 }

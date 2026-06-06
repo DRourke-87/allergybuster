@@ -7,10 +7,14 @@ struct AllergyBusterApp: App {
     init() {
         BackgroundRefreshScheduler.registerTasks()
         BackgroundRefreshScheduler.scheduleNextRefresh()
+        // Pull a fresh forecast as soon as the user grants location (onboarding or Settings).
+        ServiceContainer.shared.locationService.onAuthorizationGranted = {
+            Task { await BackgroundRefreshScheduler.runImmediateFetch(allowFreshLocation: true) }
+        }
         // Kick an immediate fetch on launch so the home screen has data without
         // waiting for the next scheduled background refresh (mirrors Android's
         // enqueueImmediatePollenFetch at startup).
-        Task { await BackgroundRefreshScheduler.runImmediateFetch() }
+        Task { await BackgroundRefreshScheduler.runImmediateFetch(allowFreshLocation: true) }
         Self.applyAppearance()
     }
 

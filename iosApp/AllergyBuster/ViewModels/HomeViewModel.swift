@@ -141,7 +141,7 @@ final class HomeViewModel: ObservableObject {
         guard !isRetrying else { return }
         isRetrying = true
         Task {
-            await BackgroundRefreshScheduler.runImmediateFetch()
+            await BackgroundRefreshScheduler.runImmediateFetch(allowFreshLocation: true)
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             await MainActor.run { self.isRetrying = false }
         }

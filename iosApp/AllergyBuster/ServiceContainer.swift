@@ -12,8 +12,10 @@ final class ServiceContainer {
     let submitFeedbackUseCase: SubmitFeedbackUseCase
     let applyDailyBayesianUseCase: ApplyDailyBayesianUseCase
     let computeRecommendationUseCase: ComputeRecommendationUseCase
+    let locationService: LocationService
 
     private init() {
+        locationService = LocationService()
         let db = DatabaseDriverFactory().createDatabase()
         let api = OpenMeteoApiClient()
 

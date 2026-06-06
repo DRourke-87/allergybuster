@@ -6,6 +6,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,9 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tarnlabs.allergybuster.domain.engine.RecommendationEngine
+import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -96,8 +101,10 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         )
 
         if (recommendation != null) {
+            val today = remember { LocalDate.now().toString() }
+            val todayPollen = recentForecasts.find { it.date == today }
             PollenBreakdown(
-                recommendation   = recommendation!!,
+                pollen            = todayPollen,
                 onPollenChipClick = { name -> selectedPollenType = name }
             )
             FeedbackSection(
@@ -231,9 +238,11 @@ private fun RecommendationCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PollenBreakdown(recommendation: Recommendation, onPollenChipClick: (String) -> Unit) {
-    if (recommendation.topContributors.isEmpty()) return
+private fun PollenBreakdown(pollen: DailyPollen?, onPollenChipClick: (String) -> Unit) {
+    val active = pollen?.let { RecommendationEngine.activePollenLevels(it) }.orEmpty()
+    if (active.isEmpty()) return
 
     Column(
         modifier = Modifier
@@ -243,7 +252,7 @@ private fun PollenBreakdown(recommendation: Recommendation, onPollenChipClick: (
             .padding(16.dp)
     ) {
         Text(
-            text  = "Today's main pollen sources",
+            text  = "Today's active pollen",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -254,18 +263,27 @@ private fun PollenBreakdown(recommendation: Recommendation, onPollenChipClick: (
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
         )
         Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            recommendation.topContributors.take(4).forEach { contributor ->
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement   = Arrangement.spacedBy(8.dp)
+        ) {
+            active.forEach { entry ->
+                val colour = levelColour(entry.norm)
+                val levelLabel = when (entry.level) {
+                    0    -> "Low"
+                    1    -> "Moderate"
+                    else -> "High"
+                }
                 SuggestionChip(
-                    onClick = { onPollenChipClick(contributor) },
-                    label   = { Text(contributor) },
+                    onClick = { onPollenChipClick(entry.type.displayName) },
+                    label   = { Text("${entry.type.icon} ${entry.type.displayName} · $levelLabel") },
                     colors  = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor     = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = colour.copy(alpha = 0.18f),
+                        labelColor     = MaterialTheme.colorScheme.onSurface
                     ),
                     border  = SuggestionChipDefaults.suggestionChipBorder(
                         enabled     = true,
-                        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        borderColor = colour.copy(alpha = 0.6f)
                     )
                 )
             }

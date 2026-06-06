@@ -23,6 +23,15 @@ struct LearningProgressState {
 
 @MainActor
 final class HomeViewModel: ObservableObject {
+    /// A pollen type with a non-zero reading today, plus its per-type level
+    /// (relative to that type's own baseline, weight-independent).
+    struct ActivePollen: Identifiable {
+        let type: PollenTypeInfo
+        let norm: Float
+        let level: Int32
+        var id: String { type.displayName }
+    }
+
     @Published var todayRecommendation: Recommendation_? = nil
     @Published var todayFeedback: DailyFeedback?        = nil
     @Published var recentForecasts: [DailyPollen]       = []
@@ -35,6 +44,21 @@ final class HomeViewModel: ObservableObject {
     private static let learningWindow = 30
     private static let stuckTimeoutNs: UInt64 = 30_000_000_000
     private let today: String
+
+    /// Every pollen type with a non-zero reading today, sorted most-significant
+    /// first. Each carries its own level so the home pills can be colour-coded
+    /// relative to that type's baseline rather than the overall risk level.
+    var activePollen: [ActivePollen] {
+        guard let todayPollen = recentForecasts.first(where: { $0.date == today }) else { return [] }
+        return PollenTypeInfo.allCases
+            .filter { $0.raw(from: todayPollen) > 0 }
+            .map { type -> ActivePollen in
+                let norm = type.normalise(type.raw(from: todayPollen))
+                let level: Int32 = norm < 1 ? 0 : (norm < 2 ? 1 : 2)
+                return ActivePollen(type: type, norm: norm, level: level)
+            }
+            .sorted { $0.norm > $1.norm }
+    }
 
     private let pollenRepo:      PollenRepository
     private let feedbackRepo:    FeedbackRepository

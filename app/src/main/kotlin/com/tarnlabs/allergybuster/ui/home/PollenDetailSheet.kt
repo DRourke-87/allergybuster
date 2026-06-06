@@ -330,8 +330,7 @@ private fun SensitivityCard(weight: Float) {
     }
 }
 
-@Composable
-private fun levelColour(normValue: Float): Color = when {
+internal fun levelColour(normValue: Float): Color = when {
     normValue < 1f -> Color(0xFF4CAF50)
     normValue < 2f -> Color(0xFFFF9800)
     else           -> Color(0xFFF44336)

@@ -115,7 +115,7 @@ final class HomeViewModel: ObservableObject {
         })
         tasks.append(Task {
             for await count in feedbackRepo.observeFeedbackCount() {
-                let fbCount = Int(count)
+                let fbCount = Int(truncating: count as NSNumber)
                 let startMs = UserDefaults(suiteName: AppGroupId)?.double(forKey: "learningStartedAt") ?? 0
                 var rawDays = 0
                 if startMs > 0 {

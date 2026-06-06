@@ -13,8 +13,8 @@ struct HomeView: View {
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
-                        ContributorsRow(contributors: rec.topContributors) { name in
-                            selectedType = PollenTypeInfo.from(displayName: name)
+                        ActivePollenRow(active: vm.activePollen) { type in
+                            selectedType = type
                         }
                         FeedbackSection(existingFeedback: vm.todayFeedback) { severity in
                             vm.submitFeedback(severity: severity)
@@ -138,30 +138,46 @@ private struct RecommendationCard: View {
     }
 }
 
-private struct ContributorsRow: View {
-    let contributors: [String]
-    let onTap: (String) -> Void
+private struct ActivePollenRow: View {
+    let active: [HomeViewModel.ActivePollen]
+    let onTap: (PollenTypeInfo) -> Void
+
+    private func levelLabel(_ level: Int32) -> String {
+        switch level {
+        case 0:  return "Low"
+        case 1:  return "Moderate"
+        default: return "High"
+        }
+    }
 
     var body: some View {
-        if !contributors.isEmpty {
+        if !active.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Today's main pollen sources")
+                Text("Today's active pollen")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.onSurfaceVariant)
                 Text("Tap any source for details, trends and cross-reactions")
                     .font(.caption)
                     .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.7))
-                HStack(spacing: 8) {
-                    ForEach(contributors.prefix(4), id: \.self) { name in
-                        Button { onTap(name) } label: {
-                            Text(name)
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 130), spacing: 8)],
+                    alignment: .leading,
+                    spacing: 8
+                ) {
+                    ForEach(active) { item in
+                        let accent = AppTheme.levelAccent(item.level)
+                        Button { onTap(item.type) } label: {
+                            Text("\(item.type.icon) \(item.type.displayName) · \(levelLabel(item.level))")
                                 .font(.caption.weight(.medium))
-                                .foregroundStyle(AppTheme.onPrimaryContainer)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
+                                .foregroundStyle(AppTheme.onBackground)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 7)
-                                .background(AppTheme.primaryContainer)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(accent.opacity(0.18))
                                 .overlay(
-                                    Capsule().stroke(AppTheme.primary.opacity(0.3), lineWidth: 1)
+                                    Capsule().stroke(accent.opacity(0.6), lineWidth: 1)
                                 )
                                 .clipShape(Capsule())
                         }

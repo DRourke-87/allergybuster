@@ -35,4 +35,20 @@ object RecommendationEngine {
             .filter { (_, contribution) -> contribution > 0.05f }
             .sortedByDescending { (_, contribution) -> contribution }
             .map { (type, _) -> type.displayName }
+
+    fun activePollenLevels(pollen: DailyPollen): List<PollenLevel> =
+        PollenType.entries
+            .filter { pollen.getRaw(it) > 0f }
+            .map { type ->
+                val norm = type.normalise(pollen.getRaw(type))
+                PollenLevel(type, pollen.getRaw(type), norm, scoreToLevel(norm))
+            }
+            .sortedByDescending { it.norm }
 }
+
+data class PollenLevel(
+    val type: PollenType,
+    val raw: Float,
+    val norm: Float,
+    val level: Int
+)

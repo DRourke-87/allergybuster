@@ -85,6 +85,29 @@ class RecommendationEngineTest {
         assertTrue(contributors.isEmpty())
     }
 
+    // --- active pollen levels (per-type, weight-independent) ---
+
+    @Test fun `activePollenLevels excludes zero-reading types`() {
+        val active = RecommendationEngine.activePollenLevels(pollen(grass = 20f, birch = 60f))
+        assertEquals(setOf("Grass", "Birch"), active.map { it.type.displayName }.toSet())
+    }
+
+    @Test fun `activePollenLevels uses each type's own baseline`() {
+        // 60 grains/m³: birch (high=100) is below high → level 1; grass (high=50) is above → level 2
+        val active = RecommendationEngine.activePollenLevels(pollen(grass = 60f, birch = 60f))
+        val birch = active.first { it.type.displayName == "Birch" }
+        val grass = active.first { it.type.displayName == "Grass" }
+        assertEquals(1, birch.level)
+        assertEquals(2, grass.level)
+    }
+
+    @Test fun `activePollenLevels sorts by normalised value descending`() {
+        // grass 60 → norm 3.0, birch 30 → norm ~1.5
+        val active = RecommendationEngine.activePollenLevels(pollen(grass = 60f, birch = 30f))
+        assertEquals("Grass", active.first().type.displayName)
+        assertTrue(active[0].norm >= active[1].norm)
+    }
+
     // --- weighted scoring with custom weights ---
 
     @Test fun `higher grass weight increases score proportionally`() {

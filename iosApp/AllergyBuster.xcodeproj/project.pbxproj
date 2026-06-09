@@ -24,6 +24,7 @@
 		AA0100000000000000000024 /* AppThemeMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000024 /* AppThemeMode.swift */; };
 		AA0100000000000000000025 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000025 /* OnboardingView.swift */; };
 		AA0100000000000000000026 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000026 /* LocationService.swift */; };
+		AA0100000000000000000027 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000027 /* NotificationScheduler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,7 @@
 		AA0200000000000000000024 /* AppThemeMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppThemeMode.swift; sourceTree = "<group>"; };
 		AA0200000000000000000025 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AA0200000000000000000026 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		AA0200000000000000000027 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +115,7 @@
 			children = (
 				AA0200000000000000000009 /* BackgroundRefreshScheduler.swift */,
 				AA0200000000000000000026 /* LocationService.swift */,
+				AA0200000000000000000027 /* NotificationScheduler.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -242,6 +245,7 @@
 				AA0100000000000000000024 /* AppThemeMode.swift in Sources */,
 				AA0100000000000000000025 /* OnboardingView.swift in Sources */,
 				AA0100000000000000000026 /* LocationService.swift in Sources */,
+				AA0100000000000000000027 /* NotificationScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,7 +378,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.6.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -406,7 +410,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.6.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

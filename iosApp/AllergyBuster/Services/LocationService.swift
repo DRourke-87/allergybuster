@@ -10,13 +10,18 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var pending: CheckedContinuation<CLLocation?, Never>?
     private var lastStatus: CLAuthorizationStatus?
+    private var requestGeneration = 0
+    private var grantObservers: [() -> Void] = []
 
     /// Treat a cached fix newer than this as good enough to return instantly.
     private let cacheMaxAge: TimeInterval = 15 * 60
 
-    /// Fired once when the user transitions into an authorized status, so the app can pull
-    /// a fresh forecast immediately after a permission grant (onboarding or Settings).
-    var onAuthorizationGranted: (() -> Void)?
+    /// Registers a callback fired once when the user transitions into an authorized
+    /// status (onboarding or Settings). Multiple observers are supported: the app
+    /// pulls a fresh forecast and the Settings screen refreshes its location row.
+    func addAuthorizationGrantObserver(_ observer: @escaping () -> Void) {
+        grantObservers.append(observer)
+    }
 
     override init() {
         super.init()
@@ -56,10 +61,14 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
                 prior.resume(returning: nil)
             }
             pending = continuation
+            requestGeneration += 1
+            let generation = requestGeneration
             manager.requestLocation()
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                guard let self else { return }
+                // Only time out the request this timer belongs to — a stale timer
+                // must not cut short a newer in-flight request.
+                guard let self, self.requestGeneration == generation else { return }
                 self.resumePending(with: self.manager.location)
             }
         }
@@ -97,7 +106,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
             // Only react to a real grant transition — skip the initial delegate callback
             // (previous == nil) so authorized users don't trigger a redundant fetch on launch.
             if authorized, previous != nil, !wasAuthorized {
-                self.onAuthorizationGranted?()
+                self.grantObservers.forEach { $0() }
             }
         }
     }

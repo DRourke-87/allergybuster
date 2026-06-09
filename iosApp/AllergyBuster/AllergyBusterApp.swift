@@ -8,9 +8,12 @@ struct AllergyBusterApp: App {
         BackgroundRefreshScheduler.registerTasks()
         BackgroundRefreshScheduler.scheduleNextRefresh()
         // Pull a fresh forecast as soon as the user grants location (onboarding or Settings).
-        ServiceContainer.shared.locationService.onAuthorizationGranted = {
+        ServiceContainer.shared.locationService.addAuthorizationGrantObserver {
             Task { await BackgroundRefreshScheduler.runImmediateFetch(allowFreshLocation: true) }
         }
+        // Keep the daily reminder scheduled for users who already granted
+        // notification permission (it survives upgrades and time changes).
+        NotificationScheduler.rescheduleIfAuthorized()
         // Kick an immediate fetch on launch so the home screen has data without
         // waiting for the next scheduled background refresh (mirrors Android's
         // enqueueImmediatePollenFetch at startup).
@@ -48,6 +51,7 @@ struct AllergyBusterApp: App {
 }
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("themeMode", store: UserDefaults(suiteName: AppGroupId))
     private var themeMode: AppThemeMode = .system
     @AppStorage("onboardingDone", store: UserDefaults(suiteName: AppGroupId))
@@ -65,6 +69,10 @@ struct ContentView: View {
         .tint(AppTheme.primary)
         .background(AppTheme.background.ignoresSafeArea())
         .preferredColorScheme(themeMode.colorScheme)
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active, onboardingDone else { return }
+            Task { await BackgroundRefreshScheduler.refreshOnForeground() }
+        }
         .fullScreenCover(isPresented: Binding(
             get: { !onboardingDone },
             set: { presented in onboardingDone = !presented }

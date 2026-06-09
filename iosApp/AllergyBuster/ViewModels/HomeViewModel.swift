@@ -43,7 +43,7 @@ final class HomeViewModel: ObservableObject {
 
     private static let learningWindow = 30
     private static let stuckTimeoutNs: UInt64 = 30_000_000_000
-    private let today: String
+    @Published private(set) var today: String
 
     /// Every pollen type with a non-zero reading today, sorted most-significant
     /// first. Each carries its own level so the home pills can be colour-coded
@@ -67,10 +67,12 @@ final class HomeViewModel: ObservableObject {
     private var tasks: [Task<Void, Never>] = []
     private var stuckTimer: Task<Void, Never>?
 
+    private var latestRecs:      [Recommendation_] = []
+    private var latestFeedbacks: [DailyFeedback]   = []
+    private var latestFeedbackCount = 0
+
     init(container: ServiceContainer = .shared) {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        today        = fmt.string(from: Date())
+        today        = Self.todayString()
         pollenRepo   = container.pollenRepository
         feedbackRepo = container.feedbackRepository
         recRepo      = container.recommendationRepository
@@ -90,12 +92,8 @@ final class HomeViewModel: ObservableObject {
     private func startObserving() {
         tasks.append(Task {
             for await recs in recRepo.observeRecent(limit: 1) {
-                let rec = recs.first(where: { $0.date == self.today })
-                self.todayRecommendation = rec
-                if let name = rec?.locationName, !name.isEmpty {
-                    self.locationName = name
-                }
-                self.updateStuckTimer(recommendation: rec)
+                self.latestRecs = recs
+                self.rebuildTodayState()
             }
         })
         tasks.append(Task {
@@ -105,7 +103,13 @@ final class HomeViewModel: ObservableObject {
         })
         tasks.append(Task {
             for await feedbacks in feedbackRepo.observeRecentFeedback(limit: 1) {
-                self.todayFeedback = feedbacks.first(where: { $0.date == self.today })
+                self.latestFeedbacks = feedbacks
+                self.rebuildTodayState()
+            }
+        })
+        tasks.append(Task {
+            for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
+                self.refreshDay()
             }
         })
         tasks.append(Task {
@@ -115,15 +119,8 @@ final class HomeViewModel: ObservableObject {
         })
         tasks.append(Task {
             for await count in feedbackRepo.observeFeedbackCount() {
-                let fbCount = Int(truncating: count as NSNumber)
-                let startMs = UserDefaults(suiteName: AppGroupId)?.double(forKey: "learningStartedAt") ?? 0
-                var rawDays = 0
-                if startMs > 0 {
-                    let start = Date(timeIntervalSince1970: startMs / 1000)
-                    rawDays = max(Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0, 0)
-                }
-                let d = min(max(rawDays, fbCount), Self.learningWindow)
-                self.learningProgress = LearningProgressState.from(daysElapsed: d, feedbackCount: fbCount)
+                self.latestFeedbackCount = Int(truncating: count as NSNumber)
+                self.rebuildLearningProgress()
             }
         })
     }
@@ -133,7 +130,18 @@ final class HomeViewModel: ObservableObject {
         stuckTimer?.cancel()
     }
 
+    /// Re-derives all "today"-keyed state when the calendar day rolls over while
+    /// the view model is alive (the app suspended overnight rather than relaunched).
+    func refreshDay() {
+        let newToday = Self.todayString()
+        guard newToday != today else { return }
+        today = newToday
+        rebuildTodayState()
+        rebuildLearningProgress()
+    }
+
     func submitFeedback(severity: Int) {
+        refreshDay()
         Task { try? await submitUseCase.invoke(date: today, severity: Int32(severity)) }
     }
 
@@ -145,6 +153,37 @@ final class HomeViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             await MainActor.run { self.isRetrying = false }
         }
+    }
+
+    private func rebuildTodayState() {
+        let rec = latestRecs.first(where: { $0.date == today })
+        todayRecommendation = rec
+        if let name = rec?.locationName, !name.isEmpty {
+            locationName = name
+        }
+        todayFeedback = latestFeedbacks.first(where: { $0.date == today })
+        updateStuckTimer(recommendation: rec)
+    }
+
+    private func rebuildLearningProgress() {
+        let fbCount = latestFeedbackCount
+        let startMs = UserDefaults(suiteName: AppGroupId)?.double(forKey: "learningStartedAt") ?? 0
+        var rawDays = 0
+        if startMs > 0 {
+            // Count calendar days (midnight boundaries), not elapsed 24h periods,
+            // so "Day N of 30" ticks over at midnight like the rest of the app.
+            let cal = Calendar.current
+            let start = cal.startOfDay(for: Date(timeIntervalSince1970: startMs / 1000))
+            rawDays = max(cal.dateComponents([.day], from: start, to: cal.startOfDay(for: Date())).day ?? 0, 0)
+        }
+        let d = min(max(rawDays, fbCount), Self.learningWindow)
+        learningProgress = LearningProgressState.from(daysElapsed: d, feedbackCount: fbCount)
+    }
+
+    private static func todayString() -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt.string(from: Date())
     }
 
     private func updateStuckTimer(recommendation: Recommendation_?) {

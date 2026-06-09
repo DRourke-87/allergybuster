@@ -48,6 +48,7 @@ struct AllergyBusterApp: App {
 }
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("themeMode", store: UserDefaults(suiteName: AppGroupId))
     private var themeMode: AppThemeMode = .system
     @AppStorage("onboardingDone", store: UserDefaults(suiteName: AppGroupId))
@@ -65,6 +66,10 @@ struct ContentView: View {
         .tint(AppTheme.primary)
         .background(AppTheme.background.ignoresSafeArea())
         .preferredColorScheme(themeMode.colorScheme)
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active, onboardingDone else { return }
+            Task { await BackgroundRefreshScheduler.refreshOnForeground() }
+        }
         .fullScreenCover(isPresented: Binding(
             get: { !onboardingDone },
             set: { presented in onboardingDone = !presented }

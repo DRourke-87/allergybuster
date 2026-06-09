@@ -2,6 +2,7 @@ import SwiftUI
 import shared
 
 struct HomeView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var vm = HomeViewModel()
     @State private var selectedType: PollenTypeInfo?
 
@@ -54,6 +55,9 @@ struct HomeView: View {
         }
         .background(AppTheme.background.ignoresSafeArea())
         .tint(AppTheme.primary)
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { vm.refreshDay() }
+        }
     }
 }
 

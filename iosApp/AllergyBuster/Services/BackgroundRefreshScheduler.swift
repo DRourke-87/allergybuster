@@ -6,6 +6,21 @@ import shared
 enum BackgroundRefreshScheduler {
     static let taskId = "com.tarnlabs.allergybuster.pollenrefresh"
 
+    @MainActor private static var lastFetchStartedAt: Date?
+    private static let foregroundFetchMaxAge: TimeInterval = 15 * 60
+
+    /// Refreshes the forecast when the app returns to the foreground, throttled
+    /// so rapid app switches don't hammer the API. The launch fetch counts as
+    /// the first run.
+    @MainActor
+    static func refreshOnForeground() async {
+        if let last = lastFetchStartedAt,
+           Date().timeIntervalSince(last) < foregroundFetchMaxAge {
+            return
+        }
+        await runImmediateFetch(allowFreshLocation: true)
+    }
+
     static func registerTasks() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: taskId, using: nil) { task in
             guard let appRefreshTask = task as? BGAppRefreshTask else { return }
@@ -41,6 +56,7 @@ enum BackgroundRefreshScheduler {
     /// reverse geocoding happens afterwards so it never blocks the network call.
     @MainActor
     static func runImmediateFetch(allowFreshLocation: Bool = false) async {
+        lastFetchStartedAt = Date()
         let container = ServiceContainer.shared
         let defaults  = UserDefaults(suiteName: AppGroupId)
         var lat = defaults?.double(forKey: "latitude")  ?? 54.66

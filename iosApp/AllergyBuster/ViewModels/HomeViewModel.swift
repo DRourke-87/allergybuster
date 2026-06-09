@@ -69,6 +69,7 @@ final class HomeViewModel: ObservableObject {
 
     private var latestRecs:      [Recommendation_] = []
     private var latestFeedbacks: [DailyFeedback]   = []
+    private var latestFeedbackCount = 0
 
     init(container: ServiceContainer = .shared) {
         today        = Self.todayString()
@@ -118,15 +119,8 @@ final class HomeViewModel: ObservableObject {
         })
         tasks.append(Task {
             for await count in feedbackRepo.observeFeedbackCount() {
-                let fbCount = Int(truncating: count as NSNumber)
-                let startMs = UserDefaults(suiteName: AppGroupId)?.double(forKey: "learningStartedAt") ?? 0
-                var rawDays = 0
-                if startMs > 0 {
-                    let start = Date(timeIntervalSince1970: startMs / 1000)
-                    rawDays = max(Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0, 0)
-                }
-                let d = min(max(rawDays, fbCount), Self.learningWindow)
-                self.learningProgress = LearningProgressState.from(daysElapsed: d, feedbackCount: fbCount)
+                self.latestFeedbackCount = Int(truncating: count as NSNumber)
+                self.rebuildLearningProgress()
             }
         })
     }
@@ -143,6 +137,7 @@ final class HomeViewModel: ObservableObject {
         guard newToday != today else { return }
         today = newToday
         rebuildTodayState()
+        rebuildLearningProgress()
     }
 
     func submitFeedback(severity: Int) {
@@ -168,6 +163,21 @@ final class HomeViewModel: ObservableObject {
         }
         todayFeedback = latestFeedbacks.first(where: { $0.date == today })
         updateStuckTimer(recommendation: rec)
+    }
+
+    private func rebuildLearningProgress() {
+        let fbCount = latestFeedbackCount
+        let startMs = UserDefaults(suiteName: AppGroupId)?.double(forKey: "learningStartedAt") ?? 0
+        var rawDays = 0
+        if startMs > 0 {
+            // Count calendar days (midnight boundaries), not elapsed 24h periods,
+            // so "Day N of 30" ticks over at midnight like the rest of the app.
+            let cal = Calendar.current
+            let start = cal.startOfDay(for: Date(timeIntervalSince1970: startMs / 1000))
+            rawDays = max(cal.dateComponents([.day], from: start, to: cal.startOfDay(for: Date())).day ?? 0, 0)
+        }
+        let d = min(max(rawDays, fbCount), Self.learningWindow)
+        learningProgress = LearningProgressState.from(daysElapsed: d, feedbackCount: fbCount)
     }
 
     private static func todayString() -> String {

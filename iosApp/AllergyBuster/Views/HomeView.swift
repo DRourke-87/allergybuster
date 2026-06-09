@@ -247,6 +247,9 @@ private struct FeedbackSection: View {
         .background(AppTheme.surfaceVariant)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .onAppear { selectedSeverity = existingFeedback.map { Int($0.severity) } }
+        .onChange(of: existingFeedback?.severity) { severity in
+            selectedSeverity = severity.map { Int($0) }
+        }
     }
 }
 

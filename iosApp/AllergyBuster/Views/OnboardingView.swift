@@ -68,6 +68,10 @@ struct OnboardingView: View {
                     if ServiceContainer.shared.locationService.authorizationStatus == .notDetermined {
                         ServiceContainer.shared.locationService.requestAuthorization()
                     }
+                    // Onboarding promises a morning alert — ask for notification
+                    // permission here and schedule the reminder on grant, so it
+                    // works without ever visiting Settings.
+                    NotificationScheduler.requestPermissionAndSchedule()
                     onFinish()
                 } else {
                     withAnimation { selection += 1 }

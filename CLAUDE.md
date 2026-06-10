@@ -7,7 +7,7 @@ It fetches hourly pollen counts from the Open-Meteo air-quality API, computes a 
 using a per-user Bayesian sensitivity model, and presents the result with a morning notification,
 and three Compose / SwiftUI screens.
 
-Current version: `1.5.2`. Package: `com.tarnlabs.allergybuster`.
+Current version: `1.7.0`. Package: `com.tarnlabs.allergybuster`.
 
 ---
 
@@ -25,7 +25,7 @@ AllergyBuster/
 ├── docs/                # GitHub Pages site (privacy policy, screenshots)
 ├── playstore/           # Play Console copy and graphics
 ├── tools/               # Supporting scripts (play-console-dashboard)
-├── .github/workflows/   # CI: release.yml (Android AAB), ios-build.yml, ios-screenshots.yml
+├── .github/workflows/   # CI: release.yml (Android AAB), ios-build.yml, ios-screenshots.yml, ios-testflight.yml
 ├── RELEASING.md         # Android release runbook
 └── gradle/libs.versions.toml  # Gradle version catalogue
 ```
@@ -44,9 +44,11 @@ UI  ──▶  ViewModel  ──▶  UseCase  ──▶  Repository  ──▶  
   - `model/` — immutable data classes (`DailyPollen`, `UserWeights`, `Recommendation`, etc.)
   - `engine/` — stateless objects: `BayesianUpdater`, `RecommendationEngine`
   - `usecase/` — suspending/operator-fun wrappers: `ComputeRecommendationUseCase`,
-    `ApplyDailyBayesianUseCase`, `SubmitFeedbackUseCase`
+    `ApplyDailyBayesianUseCase`, `SubmitFeedbackUseCase`, `ObserveOutlookUseCase`,
+    `SearchPlacesUseCase`, `CheckLocationOutlookUseCase`
 - **Data layer** (`shared/…/data/`):
-  - `remote/` — `OpenMeteoApiClient` (Ktor), `AirQualityResponse` DTO + mapper
+  - `remote/` — `OpenMeteoApiClient` + `GeocodingApiClient` (Ktor), `AirQualityResponse` /
+    `GeocodingResponse` DTOs + mappers
   - `local/db/` — SQLDelight generated database (`AllergyBusterDatabase`)
   - `repository/` — `PollenRepository`, `FeedbackRepository`, `RecommendationRepository`
 - **Platform layers**:
@@ -83,6 +85,20 @@ submits daily feedback (0=fine, 1=mild, 2=severe) vs. the model's predicted leve
 Constants: `LEARNING_RATE=0.15`, weight range `[0.1, 5.0]`, only updates types with
 `norm ≥ 0.5` (non-trivial pollen).  Applied retroactively once per day by
 `ApplyDailyBayesianUseCase`, triggered from `PollenFetchWorker`.
+
+### Outlook (future days)
+
+The worker stores all 4 fetched forecast days. `ObserveOutlookUseCase` scores the days
+after today live against the current weights (`RecommendationEngine.computeOutlook` →
+`DailyOutlook`), dropping data older than 24 h. Never persisted — the `recommendation`
+table remains a record of what the user was actually told.
+
+### Location checker (trip planner)
+
+`SearchPlacesUseCase` (Open-Meteo geocoding) + `CheckLocationOutlookUseCase` fetch and
+score the outlook for any searched place with `timezone=auto` (destination-local days).
+Read-only: nothing is persisted and the home location is untouched. UI: `"places"` route
+(Android) / `PlaceCheckView` sheet (iOS), opened from a search icon on the home header.
 
 ### Learning progress
 
@@ -139,8 +155,8 @@ old versions still need it.
 - **DI**: Hilt, single `SingletonComponent`. All shared repositories/use cases provided
   in `SharedModule`. `WorkManager` uses `HiltWorkerFactory` (default initialiser removed
   from manifest).
-- **Navigation**: `NavHost` with string routes `"home"`, `"history"`, `"settings"`.
-  Bottom nav bar in `MainActivity`.
+- **Navigation**: `NavHost` with string routes `"home"`, `"history"`, `"settings"`,
+  `"places"` (location checker; not on the bottom bar). Bottom nav bar in `MainActivity`.
 - **History screen**: each row shows date (DD/MM/YYYY), top pollen contributors, location,
   then a risk-level chip and an optional feedback chip. Both platforms use this identical layout.
 - **Notifications**: Two channels — `daily_pollen` (default importance, dismissable, with
@@ -231,8 +247,8 @@ Two files must be kept in sync:
 
 1. **`app/build.gradle.kts`** — `versionName` **and** `versionCode` (Android):
    ```kotlin
-   versionCode = 11        // ← increment by 1 every release (integer)
-   versionName = "1.5.2"   // ← update this
+   versionCode = 15        // ← increment by 1 every release (integer)
+   versionName = "1.7.0"   // ← update this
    ```
    `versionCode` is **manual** — bump it by one for each release. It is not set
    by CI, and it must increase sequentially because `AppUpgradeManager` reads it
@@ -241,7 +257,7 @@ Two files must be kept in sync:
 2. **`iosApp/AllergyBuster.xcodeproj/project.pbxproj`** — `MARKETING_VERSION` field (iOS).
    It appears twice (Debug + Release on the app target); update both:
    ```
-   MARKETING_VERSION = 1.5.2;
+   MARKETING_VERSION = 1.7.0;
    ```
    Leave `CURRENT_PROJECT_VERSION` alone — it is managed by the build/CI.
 
@@ -272,18 +288,16 @@ Signing vars (CI secrets or `keystore.properties`):
 
 ### iOS
 
-CI: GitHub Actions (macOS runner). All iOS workflows are **manual**
-(`workflow_dispatch`) — there is no automatic iOS build.
-- `ios-build.yml`: builds an **unsigned `.ipa`** artifact for sideloading onto a
-  real device (e.g. Sideloadly / AltStore on Windows, signed with a free Apple
+CI: GitHub Actions (macOS runners).
+- `ios-build.yml` (manual): builds an **unsigned `.ipa`** artifact for sideloading onto
+  a real device (e.g. Sideloadly / AltStore on Windows, signed with a free Apple
   ID). No Apple Developer account or signing secrets required.
-- `ios-screenshots.yml`: builds for the simulator and captures App Store screenshots.
-
-**TestFlight** is not wired up yet. It requires a paid Apple Developer Program
-membership, an App Store Connect app record, distribution signing (certificate +
-provisioning profile stored as repo secrets) and an upload step. When that is in
-place, add a separate signed workflow (triggered on `v*.*.*` tags, mirroring the
-Android `release.yml`).
+- `ios-screenshots.yml` (manual): builds for the simulator and captures App Store screenshots.
+- `ios-testflight.yml` (`v*.*.*` tags + manual): builds a **signed `.ipa`** and uploads
+  it to TestFlight. Requires the distribution signing + App Store Connect API secrets
+  documented at the top of the workflow file. Note: the upload step still uses the
+  deprecated `xcrun altool` — migrate to Transporter / the App Store Connect API
+  before Apple removes it.
 
 ---
 
@@ -297,6 +311,8 @@ Unit tests live in `app/src/test/`. Key test files:
 | `RecommendationEngineTest.kt` | Score computation, level thresholds, contribution ordering |
 | `AppUpgradeManagerTest.kt` | Transition detection, version bumping |
 | `RoomToSqlDelightMigratorJsonTest.kt` | `sanitizeContributorsJson` edge cases |
+| `ObserveOutlookUseCaseTest.kt` | Outlook filtering (today/stale), scoring, weight fallback |
+| `CheckLocationOutlookUseCaseTest.kt` | Per-day scoring for searched locations, error propagation |
 
 Tests use JUnit4 + MockK + Turbine + `kotlinx-coroutines-test`. No instrumented tests.
 
@@ -337,6 +353,7 @@ GitHub Actions only (no Codemagic):
 | `release.yml` | `v*.*.*` tag / dispatch | Build + sign Android release AAB (runs lint + unit tests first) |
 | `ios-build.yml` | manual | Build unsigned iOS `.ipa` for sideloading |
 | `ios-screenshots.yml` | manual | Capture iOS simulator screenshots |
+| `ios-testflight.yml` | `v*.*.*` tag / dispatch | Build signed iOS `.ipa` and upload to TestFlight |
 
 There are no build-on-every-push workflows; lint and unit tests run as part of
 `release.yml`. Feature branches still follow `claude/<description>` naming.

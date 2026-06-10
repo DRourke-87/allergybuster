@@ -332,7 +332,7 @@ private fun FeedbackSection(
         ) {
             FeedbackButton("🌿 Fine", 0, selectedSeverity, onFeedback, Modifier.weight(1f))
             FeedbackButton("🌾 Mild", 1, selectedSeverity, onFeedback, Modifier.weight(1f))
-            FeedbackButton("🌻 Bad",  2, selectedSeverity, onFeedback, Modifier.weight(1f))
+            FeedbackButton("🌻 Severe", 2, selectedSeverity, onFeedback, Modifier.weight(1f))
         }
     }
 }

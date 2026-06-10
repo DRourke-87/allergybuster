@@ -24,8 +24,11 @@ class PollenRepository(
     private val api: OpenMeteoApiClient
 ) {
     /** Fetches from network, stores all returned days, returns today's entry. Null on failure. */
-    suspend fun fetchAndStore(lat: Double = 54.66, lon: Double = -3.36): DailyPollen? = try {
-        val response = api.getAirQuality(lat, lon, HOURLY_FIELDS, 4, "Europe/London")
+    suspend fun fetchAndStore(lat: Double, lon: Double): DailyPollen? = try {
+        // API day-bucketing must match the device timezone used to compute "today" below.
+        val response = api.getAirQuality(
+            lat, lon, HOURLY_FIELDS, 4, TimeZone.currentSystemDefault().id
+        )
         val pollenList = response.toDailyPollen()
         pollenList.forEach { pollen ->
             db.pollenForecastQueries.insertOrReplace(
@@ -41,7 +44,10 @@ class PollenRepository(
         }
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
         pollenList.find { it.date == today }
-    } catch (_: Exception) { null }
+    } catch (e: Exception) {
+        println("AllergyBuster: pollen fetch failed: ${e.message}")
+        null
+    }
 
     suspend fun getCachedForDate(date: String): DailyPollen? =
         db.pollenForecastQueries.getForDate(date).executeAsOneOrNull()?.toDomain()

@@ -33,7 +33,7 @@ env:
 jobs:
   testflight:
     name: Build & upload to TestFlight
-    runs-on: macos-26
+    runs-on: macos-15
 
     steps:
       - name: Checkout
@@ -149,6 +149,8 @@ jobs:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
+          # TODO: altool upload is deprecated since Xcode 15 — migrate to
+          # `xcrun iTMSTransporter` or App Store Connect API before Apple removes it.
           xcrun altool --upload-app \
             --type ios \
             --file export/AllergyBuster.ipa \

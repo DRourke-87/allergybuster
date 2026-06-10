@@ -58,6 +58,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val learningProgress by viewModel.learningProgress.collectAsStateWithLifecycle()
     val locationName     by viewModel.locationName.collectAsStateWithLifecycle()
     val recentForecasts  by viewModel.recentForecasts.collectAsStateWithLifecycle()
+    val outlook          by viewModel.outlook.collectAsStateWithLifecycle()
     val userWeights      by viewModel.userWeights.collectAsStateWithLifecycle()
     val isRetrying       by viewModel.isRetrying.collectAsStateWithLifecycle()
 
@@ -98,6 +99,11 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
             showRetry      = showRetry,
             isRetrying     = isRetrying,
             onRetry        = viewModel::retryForecastFetch
+        )
+
+        OutlookStrip(
+            outlook    = outlook,
+            onDayClick = { day -> day.topContributors.firstOrNull()?.let { selectedPollenType = it } }
         )
 
         if (recommendation != null) {

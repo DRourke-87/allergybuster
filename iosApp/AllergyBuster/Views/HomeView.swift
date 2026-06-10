@@ -14,6 +14,12 @@ struct HomeView: View {
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
+                        OutlookStripView(outlook: vm.outlook) { day in
+                            if let name = day.topContributors.first,
+                               let type = PollenTypeInfo.allCases.first(where: { $0.displayName == name }) {
+                                selectedType = type
+                            }
+                        }
                         ActivePollenRow(active: vm.activePollen) { type in
                             selectedType = type
                         }
@@ -203,8 +209,8 @@ private struct FeedbackSection: View {
     let onSubmit: (Int) -> Void
     @State private var selectedSeverity: Int? = nil
 
-    // Matches the shared model + Android: 0=Fine, 1=Mild, 2=Bad.
-    private let labels  = ["Fine", "Mild", "Bad"]
+    // Matches the shared model + Android: 0=Fine, 1=Mild, 2=Severe.
+    private let labels  = ["Fine", "Mild", "Severe"]
     private let icons   = ["leaf.fill", "wind", "sun.max.fill"]
 
     var body: some View {

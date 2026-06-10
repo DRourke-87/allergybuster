@@ -22,5 +22,8 @@ SELECT * FROM pollen_forecast ORDER BY date DESC LIMIT 1;
 observeRecent:
 SELECT * FROM pollen_forecast ORDER BY date DESC LIMIT :limit;
 
+observeFromDate:
+SELECT * FROM pollen_forecast WHERE date >= :date ORDER BY date ASC;
+
 deleteOlderThan:
 DELETE FROM pollen_forecast WHERE date < :cutoff;

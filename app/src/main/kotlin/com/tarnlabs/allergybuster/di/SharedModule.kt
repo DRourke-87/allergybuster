@@ -10,6 +10,7 @@ import com.tarnlabs.allergybuster.data.repository.PollenRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
 import com.tarnlabs.allergybuster.domain.usecase.ApplyDailyBayesianUseCase
 import com.tarnlabs.allergybuster.domain.usecase.ComputeRecommendationUseCase
+import com.tarnlabs.allergybuster.domain.usecase.ObserveOutlookUseCase
 import com.tarnlabs.allergybuster.domain.usecase.SubmitFeedbackUseCase
 import dagger.Module
 import dagger.Provides
@@ -63,4 +64,10 @@ object SharedModule {
     @Provides @Singleton
     fun provideSubmitFeedbackUseCase(feedbackRepository: FeedbackRepository) =
         SubmitFeedbackUseCase(feedbackRepository)
+
+    @Provides @Singleton
+    fun provideObserveOutlookUseCase(
+        pollenRepository: PollenRepository,
+        feedbackRepository: FeedbackRepository
+    ) = ObserveOutlookUseCase(pollenRepository, feedbackRepository)
 }

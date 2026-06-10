@@ -13,6 +13,7 @@ final class ServiceContainer {
     let submitFeedbackUseCase: SubmitFeedbackUseCase
     let applyDailyBayesianUseCase: ApplyDailyBayesianUseCase
     let computeRecommendationUseCase: ComputeRecommendationUseCase
+    let observeOutlookUseCase: ObserveOutlookUseCase
     let locationService: LocationService
 
     private init() {
@@ -30,6 +31,10 @@ final class ServiceContainer {
             recommendationRepository: recommendationRepository
         )
         computeRecommendationUseCase = ComputeRecommendationUseCase(
+            feedbackRepository: feedbackRepository
+        )
+        observeOutlookUseCase = ObserveOutlookUseCase(
+            pollenRepository:   pollenRepository,
             feedbackRepository: feedbackRepository
         )
     }

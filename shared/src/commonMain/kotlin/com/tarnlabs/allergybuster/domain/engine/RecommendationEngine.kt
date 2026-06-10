@@ -1,5 +1,6 @@
 package com.tarnlabs.allergybuster.domain.engine
 
+import com.tarnlabs.allergybuster.domain.model.DailyOutlook
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.PollenType
 import com.tarnlabs.allergybuster.domain.model.UserWeights
@@ -35,6 +36,17 @@ object RecommendationEngine {
             .filter { (_, contribution) -> contribution > 0.05f }
             .sortedByDescending { (_, contribution) -> contribution }
             .map { (type, _) -> type.displayName }
+
+    fun computeOutlook(pollen: DailyPollen, weights: UserWeights): DailyOutlook {
+        val score = computeScore(pollen, weights)
+        return DailyOutlook(
+            date            = pollen.date,
+            level           = scoreToLevel(score),
+            score           = score,
+            topContributors = computeContributions(pollen, weights),
+            pollen          = pollen
+        )
+    }
 
     fun activePollenLevels(pollen: DailyPollen): List<PollenLevel> =
         PollenType.entries

@@ -10,9 +10,11 @@ import com.tarnlabs.allergybuster.data.repository.FeedbackRepository
 import com.tarnlabs.allergybuster.data.repository.PollenRepository
 import com.tarnlabs.allergybuster.data.repository.RecommendationRepository
 import com.tarnlabs.allergybuster.domain.model.DailyFeedback
+import com.tarnlabs.allergybuster.domain.model.DailyOutlook
 import com.tarnlabs.allergybuster.domain.model.DailyPollen
 import com.tarnlabs.allergybuster.domain.model.Recommendation
 import com.tarnlabs.allergybuster.domain.model.UserWeights
+import com.tarnlabs.allergybuster.domain.usecase.ObserveOutlookUseCase
 import com.tarnlabs.allergybuster.domain.usecase.SubmitFeedbackUseCase
 import com.tarnlabs.allergybuster.enqueueImmediatePollenFetch
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +40,7 @@ class HomeViewModel @Inject constructor(
     private val feedbackRepository: FeedbackRepository,
     private val pollenRepository: PollenRepository,
     private val submitFeedback: SubmitFeedbackUseCase,
+    observeOutlook: ObserveOutlookUseCase,
     private val appSettings: AppSettingsDataStore,
     private val locationProvider: LocationProvider,
     @ApplicationContext private val context: Context
@@ -61,6 +64,9 @@ class HomeViewModel @Inject constructor(
 
     val recentForecasts: StateFlow<List<DailyPollen>> = pollenRepository
         .observeRecent(14)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val outlook: StateFlow<List<DailyOutlook>> = observeOutlook()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val userWeights: StateFlow<UserWeights> = feedbackRepository

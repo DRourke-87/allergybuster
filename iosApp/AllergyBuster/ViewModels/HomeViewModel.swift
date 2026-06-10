@@ -35,6 +35,7 @@ final class HomeViewModel: ObservableObject {
     @Published var todayRecommendation: Recommendation_? = nil
     @Published var todayFeedback: DailyFeedback?        = nil
     @Published var recentForecasts: [DailyPollen]       = []
+    @Published var outlook: [DailyOutlook]              = []
     @Published var userWeights: UserWeights             = .defaultWeights
     @Published var locationName: String                 = ""
     @Published var learningProgress: LearningProgressState = .initial
@@ -64,6 +65,7 @@ final class HomeViewModel: ObservableObject {
     private let feedbackRepo:    FeedbackRepository
     private let recRepo:         RecommendationRepository
     private let submitUseCase:   SubmitFeedbackUseCase
+    private let outlookUseCase:  ObserveOutlookUseCase
     private var tasks: [Task<Void, Never>] = []
     private var stuckTimer: Task<Void, Never>?
 
@@ -77,6 +79,7 @@ final class HomeViewModel: ObservableObject {
         feedbackRepo = container.feedbackRepository
         recRepo      = container.recommendationRepository
         submitUseCase = container.submitFeedbackUseCase
+        outlookUseCase = container.observeOutlookUseCase
         locationName = UserDefaults(suiteName: AppGroupId)?.string(forKey: "locationName") ?? ""
         ensureLearningStarted()
         startObserving()
@@ -115,6 +118,11 @@ final class HomeViewModel: ObservableObject {
         tasks.append(Task {
             for await pollen in pollenRepo.observeRecent(limit: 14) {
                 self.recentForecasts = pollen
+            }
+        })
+        tasks.append(Task {
+            for await days in outlookUseCase.invoke() {
+                self.outlook = days
             }
         })
         tasks.append(Task {

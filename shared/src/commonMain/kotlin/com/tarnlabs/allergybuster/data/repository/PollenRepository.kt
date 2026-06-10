@@ -55,6 +55,13 @@ class PollenRepository(
     suspend fun getMostRecent(): DailyPollen? =
         db.pollenForecastQueries.getMostRecent().executeAsOneOrNull()?.toDomain()
 
+    fun observeFromDate(date: String): Flow<List<DailyPollen>> =
+        db.pollenForecastQueries.observeFromDate(date)
+            .asFlow()
+            .mapToList(Dispatchers.Default)
+            .map { rows -> rows.mapNotNull { runCatching { it.toDomain() }.getOrNull() } }
+            .catch { emit(emptyList()) }
+
     fun observeRecent(limit: Int = 30): Flow<List<DailyPollen>> =
         db.pollenForecastQueries.observeRecent(limit.toLong())
             .asFlow()

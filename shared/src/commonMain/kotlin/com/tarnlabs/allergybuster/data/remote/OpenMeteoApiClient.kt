@@ -9,6 +9,11 @@ private const val BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-qual
 
 class OpenMeteoApiClient {
 
+    companion object {
+        const val POLLEN_HOURLY_FIELDS =
+            "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen"
+    }
+
     private val client = createHttpClient()
 
     suspend fun getAirQuality(

@@ -3,17 +3,31 @@ import shared
 
 struct OutlookStripView: View {
     let outlook: [DailyOutlook]
+    var title: String = "Next days"
+    var startsToday: Bool = false
     let onTap: (DailyOutlook) -> Void
+
+    private func dayLabel(index: Int, day: DailyOutlook) -> String {
+        let tomorrowIndex = startsToday ? 1 : 0
+        if index == tomorrowIndex - 1 { return "Today" }
+        if index == tomorrowIndex { return "Tomorrow" }
+        let parser = DateFormatter()
+        parser.dateFormat = "yyyy-MM-dd"
+        guard let date = parser.date(from: day.date) else { return day.date }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "EEE"
+        return fmt.string(from: date)
+    }
 
     var body: some View {
         if !outlook.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Next days")
+                Text(title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.onSurfaceVariant)
                 HStack(spacing: 8) {
                     ForEach(Array(outlook.enumerated()), id: \.element.date) { index, day in
-                        OutlookDayChip(day: day, isTomorrow: index == 0) {
+                        OutlookDayChip(day: day, dayLabel: dayLabel(index: index, day: day)) {
                             onTap(day)
                         }
                     }
@@ -29,7 +43,7 @@ struct OutlookStripView: View {
 
 private struct OutlookDayChip: View {
     let day: DailyOutlook
-    let isTomorrow: Bool
+    let dayLabel: String
     let onTap: () -> Void
 
     private var levelLabel: String {
@@ -46,16 +60,6 @@ private struct OutlookDayChip: View {
         case 1:  return "wind"
         default: return "sun.max.fill"
         }
-    }
-
-    private var dayLabel: String {
-        if isTomorrow { return "Tomorrow" }
-        let parser = DateFormatter()
-        parser.dateFormat = "yyyy-MM-dd"
-        guard let date = parser.date(from: day.date) else { return day.date }
-        let fmt = DateFormatter()
-        fmt.dateFormat = "EEE"
-        return fmt.string(from: date)
     }
 
     var body: some View {

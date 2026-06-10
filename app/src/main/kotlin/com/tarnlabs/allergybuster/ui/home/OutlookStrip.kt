@@ -25,7 +25,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-fun OutlookStrip(outlook: List<DailyOutlook>, onDayClick: (DailyOutlook) -> Unit) {
+fun OutlookStrip(
+    outlook: List<DailyOutlook>,
+    onDayClick: (DailyOutlook) -> Unit,
+    title: String = "Next days",
+    startsToday: Boolean = false
+) {
     if (outlook.isEmpty()) return
 
     Column(
@@ -36,7 +41,7 @@ fun OutlookStrip(outlook: List<DailyOutlook>, onDayClick: (DailyOutlook) -> Unit
             .padding(16.dp)
     ) {
         Text(
-            text  = "Next days",
+            text  = title,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -47,20 +52,31 @@ fun OutlookStrip(outlook: List<DailyOutlook>, onDayClick: (DailyOutlook) -> Unit
         ) {
             outlook.forEachIndexed { index, day ->
                 OutlookDayChip(
-                    day        = day,
-                    isTomorrow = index == 0,
-                    onClick    = { onDayClick(day) },
-                    modifier   = Modifier.weight(1f)
+                    day      = day,
+                    dayLabel = outlookDayLabel(index, day, startsToday),
+                    onClick  = { onDayClick(day) },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
     }
 }
 
+private fun outlookDayLabel(index: Int, day: DailyOutlook, startsToday: Boolean): String {
+    val tomorrowIndex = if (startsToday) 1 else 0
+    return when (index) {
+        tomorrowIndex - 1 -> "Today"
+        tomorrowIndex     -> "Tomorrow"
+        else -> runCatching {
+            LocalDate.parse(day.date).format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
+        }.getOrDefault(day.date)
+    }
+}
+
 @Composable
 private fun OutlookDayChip(
     day: DailyOutlook,
-    isTomorrow: Boolean,
+    dayLabel: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -84,14 +100,6 @@ private fun OutlookDayChip(
         1    -> "Moderate"
         else -> "High"
     }
-    val dayLabel = if (isTomorrow) {
-        "Tomorrow"
-    } else {
-        runCatching {
-            LocalDate.parse(day.date).format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
-        }.getOrDefault(day.date)
-    }
-
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))

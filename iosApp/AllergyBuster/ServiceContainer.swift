@@ -14,6 +14,8 @@ final class ServiceContainer {
     let applyDailyBayesianUseCase: ApplyDailyBayesianUseCase
     let computeRecommendationUseCase: ComputeRecommendationUseCase
     let observeOutlookUseCase: ObserveOutlookUseCase
+    let searchPlacesUseCase: SearchPlacesUseCase
+    let checkLocationOutlookUseCase: CheckLocationOutlookUseCase
     let locationService: LocationService
 
     private init() {
@@ -35,6 +37,11 @@ final class ServiceContainer {
         )
         observeOutlookUseCase = ObserveOutlookUseCase(
             pollenRepository:   pollenRepository,
+            feedbackRepository: feedbackRepository
+        )
+        searchPlacesUseCase = SearchPlacesUseCase(api: GeocodingApiClient())
+        checkLocationOutlookUseCase = CheckLocationOutlookUseCase(
+            api:                api,
             feedbackRepository: feedbackRepository
         )
     }

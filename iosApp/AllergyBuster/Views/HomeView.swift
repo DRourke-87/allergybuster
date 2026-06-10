@@ -5,12 +5,15 @@ struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var vm = HomeViewModel()
     @State private var selectedType: PollenTypeInfo?
+    @State private var showPlaceCheck = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    AppHeader(locationName: vm.locationName)
+                    AppHeader(locationName: vm.locationName) {
+                        showPlaceCheck = true
+                    }
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
@@ -58,6 +61,9 @@ struct HomeView: View {
                     userWeights: vm.userWeights
                 )
             }
+            .sheet(isPresented: $showPlaceCheck) {
+                PlaceCheckView()
+            }
         }
         .background(AppTheme.background.ignoresSafeArea())
         .tint(AppTheme.primary)
@@ -71,17 +77,27 @@ struct HomeView: View {
 
 private struct AppHeader: View {
     let locationName: String
+    let onPlacesTap: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("AllergyBuster")
-                .font(.title2).fontWeight(.bold)
-                .foregroundStyle(AppTheme.primary)
-            if !locationName.isEmpty {
-                Text(locationName)
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.onSurfaceVariant)
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("AllergyBuster")
+                    .font(.title2).fontWeight(.bold)
+                    .foregroundStyle(AppTheme.primary)
+                if !locationName.isEmpty {
+                    Text(locationName)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.onSurfaceVariant)
+                }
             }
+            Spacer()
+            Button(action: onPlacesTap) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppTheme.primary)
+            }
+            .accessibilityLabel("Check another location")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

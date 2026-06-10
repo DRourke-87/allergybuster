@@ -16,9 +16,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 
-private const val HOURLY_FIELDS =
-    "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen"
-
 class PollenRepository(
     private val db: AllergyBusterDatabase,
     private val api: OpenMeteoApiClient
@@ -27,7 +24,7 @@ class PollenRepository(
     suspend fun fetchAndStore(lat: Double, lon: Double): DailyPollen? = try {
         // API day-bucketing must match the device timezone used to compute "today" below.
         val response = api.getAirQuality(
-            lat, lon, HOURLY_FIELDS, 4, TimeZone.currentSystemDefault().id
+            lat, lon, OpenMeteoApiClient.POLLEN_HOURLY_FIELDS, 4, TimeZone.currentSystemDefault().id
         )
         val pollenList = response.toDailyPollen()
         pollenList.forEach { pollen ->

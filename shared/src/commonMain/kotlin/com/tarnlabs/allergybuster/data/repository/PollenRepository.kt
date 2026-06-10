@@ -16,16 +16,16 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 
-private const val HOURLY_FIELDS =
-    "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen"
-
 class PollenRepository(
     private val db: AllergyBusterDatabase,
     private val api: OpenMeteoApiClient
 ) {
     /** Fetches from network, stores all returned days, returns today's entry. Null on failure. */
-    suspend fun fetchAndStore(lat: Double = 54.66, lon: Double = -3.36): DailyPollen? = try {
-        val response = api.getAirQuality(lat, lon, HOURLY_FIELDS, 4, "Europe/London")
+    suspend fun fetchAndStore(lat: Double, lon: Double): DailyPollen? = try {
+        // API day-bucketing must match the device timezone used to compute "today" below.
+        val response = api.getAirQuality(
+            lat, lon, OpenMeteoApiClient.POLLEN_HOURLY_FIELDS, 4, TimeZone.currentSystemDefault().id
+        )
         val pollenList = response.toDailyPollen()
         pollenList.forEach { pollen ->
             db.pollenForecastQueries.insertOrReplace(
@@ -41,13 +41,23 @@ class PollenRepository(
         }
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
         pollenList.find { it.date == today }
-    } catch (_: Exception) { null }
+    } catch (e: Exception) {
+        println("AllergyBuster: pollen fetch failed: ${e.message}")
+        null
+    }
 
     suspend fun getCachedForDate(date: String): DailyPollen? =
         db.pollenForecastQueries.getForDate(date).executeAsOneOrNull()?.toDomain()
 
     suspend fun getMostRecent(): DailyPollen? =
         db.pollenForecastQueries.getMostRecent().executeAsOneOrNull()?.toDomain()
+
+    fun observeFromDate(date: String): Flow<List<DailyPollen>> =
+        db.pollenForecastQueries.observeFromDate(date)
+            .asFlow()
+            .mapToList(Dispatchers.Default)
+            .map { rows -> rows.mapNotNull { runCatching { it.toDomain() }.getOrNull() } }
+            .catch { emit(emptyList()) }
 
     fun observeRecent(limit: Int = 30): Flow<List<DailyPollen>> =
         db.pollenForecastQueries.observeRecent(limit.toLong())

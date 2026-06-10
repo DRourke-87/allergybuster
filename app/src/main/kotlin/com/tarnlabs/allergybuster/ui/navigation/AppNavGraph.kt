@@ -16,14 +16,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.tarnlabs.allergybuster.ui.history.HistoryScreen
 import com.tarnlabs.allergybuster.ui.home.HomeScreen
+import com.tarnlabs.allergybuster.ui.places.PlaceCheckScreen
 import com.tarnlabs.allergybuster.ui.settings.SettingsScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "home") {
-        composable("home")     { HomeScreen() }
+        composable("home") {
+            HomeScreen(onPlacesClick = {
+                navController.navigate("places") { launchSingleTop = true }
+            })
+        }
         composable("history")  { HistoryScreen() }
         composable("settings") { SettingsScreen() }
+        composable("places")   { PlaceCheckScreen(onBack = { navController.popBackStack() }) }
     }
 }
 

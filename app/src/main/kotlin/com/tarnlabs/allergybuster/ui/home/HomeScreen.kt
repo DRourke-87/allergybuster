@@ -17,9 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SuggestionChip
@@ -52,12 +56,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    onPlacesClick: () -> Unit = {},
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     val recommendation   by viewModel.todayRecommendation.collectAsStateWithLifecycle()
     val feedback         by viewModel.todayFeedback.collectAsStateWithLifecycle()
     val learningProgress by viewModel.learningProgress.collectAsStateWithLifecycle()
     val locationName     by viewModel.locationName.collectAsStateWithLifecycle()
     val recentForecasts  by viewModel.recentForecasts.collectAsStateWithLifecycle()
+    val outlook          by viewModel.outlook.collectAsStateWithLifecycle()
     val userWeights      by viewModel.userWeights.collectAsStateWithLifecycle()
     val isRetrying       by viewModel.isRetrying.collectAsStateWithLifecycle()
 
@@ -92,12 +100,17 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
             .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        AppHeader(locationName)
+        AppHeader(locationName, onPlacesClick)
         RecommendationCard(
             recommendation = recommendation,
             showRetry      = showRetry,
             isRetrying     = isRetrying,
             onRetry        = viewModel::retryForecastFetch
+        )
+
+        OutlookStrip(
+            outlook    = outlook,
+            onDayClick = { day -> day.topContributors.firstOrNull()?.let { selectedPollenType = it } }
         )
 
         if (recommendation != null) {
@@ -119,18 +132,31 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun AppHeader(locationName: String) {
-    Column {
-        Text(
-            text  = "AllergyBuster",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        if (locationName.isNotEmpty()) {
+private fun AppHeader(locationName: String, onPlacesClick: () -> Unit) {
+    Row(
+        modifier              = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment     = Alignment.CenterVertically
+    ) {
+        Column {
             Text(
-                text  = locationName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text  = "AllergyBuster",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            if (locationName.isNotEmpty()) {
+                Text(
+                    text  = locationName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        IconButton(onClick = onPlacesClick) {
+            Icon(
+                imageVector        = Icons.Default.Search,
+                contentDescription = "Check another location",
+                tint               = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -332,7 +358,7 @@ private fun FeedbackSection(
         ) {
             FeedbackButton("🌿 Fine", 0, selectedSeverity, onFeedback, Modifier.weight(1f))
             FeedbackButton("🌾 Mild", 1, selectedSeverity, onFeedback, Modifier.weight(1f))
-            FeedbackButton("🌻 Bad",  2, selectedSeverity, onFeedback, Modifier.weight(1f))
+            FeedbackButton("🌻 Severe", 2, selectedSeverity, onFeedback, Modifier.weight(1f))
         }
     }
 }

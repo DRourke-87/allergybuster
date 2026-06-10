@@ -5,15 +5,24 @@ struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var vm = HomeViewModel()
     @State private var selectedType: PollenTypeInfo?
+    @State private var showPlaceCheck = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    AppHeader(locationName: vm.locationName)
+                    AppHeader(locationName: vm.locationName) {
+                        showPlaceCheck = true
+                    }
 
                     if let rec = vm.todayRecommendation {
                         RecommendationCard(rec: rec)
+                        OutlookStripView(outlook: vm.outlook) { day in
+                            if let name = day.topContributors.first,
+                               let type = PollenTypeInfo.allCases.first(where: { $0.displayName == name }) {
+                                selectedType = type
+                            }
+                        }
                         ActivePollenRow(active: vm.activePollen) { type in
                             selectedType = type
                         }
@@ -52,6 +61,9 @@ struct HomeView: View {
                     userWeights: vm.userWeights
                 )
             }
+            .sheet(isPresented: $showPlaceCheck) {
+                PlaceCheckView()
+            }
         }
         .background(AppTheme.background.ignoresSafeArea())
         .tint(AppTheme.primary)
@@ -65,17 +77,27 @@ struct HomeView: View {
 
 private struct AppHeader: View {
     let locationName: String
+    let onPlacesTap: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("AllergyBuster")
-                .font(.title2).fontWeight(.bold)
-                .foregroundStyle(AppTheme.primary)
-            if !locationName.isEmpty {
-                Text(locationName)
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.onSurfaceVariant)
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("AllergyBuster")
+                    .font(.title2).fontWeight(.bold)
+                    .foregroundStyle(AppTheme.primary)
+                if !locationName.isEmpty {
+                    Text(locationName)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.onSurfaceVariant)
+                }
             }
+            Spacer()
+            Button(action: onPlacesTap) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppTheme.primary)
+            }
+            .accessibilityLabel("Check another location")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -203,8 +225,8 @@ private struct FeedbackSection: View {
     let onSubmit: (Int) -> Void
     @State private var selectedSeverity: Int? = nil
 
-    // Matches the shared model + Android: 0=Fine, 1=Mild, 2=Bad.
-    private let labels  = ["Fine", "Mild", "Bad"]
+    // Matches the shared model + Android: 0=Fine, 1=Mild, 2=Severe.
+    private let labels  = ["Fine", "Mild", "Severe"]
     private let icons   = ["leaf.fill", "wind", "sun.max.fill"]
 
     var body: some View {

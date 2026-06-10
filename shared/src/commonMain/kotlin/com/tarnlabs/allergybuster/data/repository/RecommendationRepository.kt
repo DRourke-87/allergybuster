@@ -42,7 +42,12 @@ private fun com.tarnlabs.allergybuster.data.local.db.Recommendation.toDomain() =
     level           = level.toInt(),
     score           = score.toFloat(),
     advice          = advice,
-    topContributors = try { Json.decodeFromString(topContributors) } catch (_: Exception) { emptyList() },
+    topContributors = try {
+        Json.decodeFromString(topContributors)
+    } catch (e: Exception) {
+        println("AllergyBuster: corrupt topContributors for $date: ${e.message}")
+        emptyList()
+    },
     computedAt      = computedAt,
     isStale         = isStale != 0L,
     locationName    = locationName

@@ -33,6 +33,14 @@ class NotificationHelper @Inject constructor(
         const val ACTION_MILD           = "com.tarnlabs.allergybuster.ACTION_MILD"
         const val ACTION_SEVERE         = "com.tarnlabs.allergybuster.ACTION_SEVERE"
         const val EXTRA_DATE            = "extra_date"
+
+        // Explicit PendingIntent request codes — hashCode-derived codes can collide.
+        private val DAILY_REQUEST_CODES = mapOf(
+            ACTION_FINE to 2001, ACTION_MILD to 2002, ACTION_SEVERE to 2003
+        )
+        private val LOCATION_REQUEST_CODES = mapOf(
+            ACTION_FINE to 2011, ACTION_MILD to 2012, ACTION_SEVERE to 2013
+        )
     }
 
     private fun canPostNotifications(): Boolean {
@@ -74,7 +82,7 @@ class NotificationHelper @Inject constructor(
             }
             return PendingIntent.getBroadcast(
                 context,
-                action.hashCode(),
+                DAILY_REQUEST_CODES.getValue(action),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
@@ -141,8 +149,7 @@ class NotificationHelper @Inject constructor(
             }
             return PendingIntent.getBroadcast(
                 context,
-                // Use offset to avoid colliding with daily notification request codes
-                (action + "_loc").hashCode(),
+                LOCATION_REQUEST_CODES.getValue(action),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )

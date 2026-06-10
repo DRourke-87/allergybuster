@@ -25,6 +25,9 @@
 		AA0100000000000000000025 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000025 /* OnboardingView.swift */; };
 		AA0100000000000000000026 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000026 /* LocationService.swift */; };
 		AA0100000000000000000027 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000027 /* NotificationScheduler.swift */; };
+		AA0100000000000000000028 /* OutlookStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000028 /* OutlookStripView.swift */; };
+		AA0100000000000000000029 /* PlaceCheckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0200000000000000000029 /* PlaceCheckView.swift */; };
+		AA010000000000000000002A /* PlaceCheckViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA020000000000000000002A /* PlaceCheckViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +52,9 @@
 		AA0200000000000000000025 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AA0200000000000000000026 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		AA0200000000000000000027 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		AA0200000000000000000028 /* OutlookStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlookStripView.swift; sourceTree = "<group>"; };
+		AA0200000000000000000029 /* PlaceCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceCheckView.swift; sourceTree = "<group>"; };
+		AA020000000000000000002A /* PlaceCheckViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceCheckViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +102,8 @@
 				AA0200000000000000000021 /* PollenDetailView.swift */,
 				AA0200000000000000000022 /* LearningTreeView.swift */,
 				AA0200000000000000000025 /* OnboardingView.swift */,
+				AA0200000000000000000028 /* OutlookStripView.swift */,
+				AA0200000000000000000029 /* PlaceCheckView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -106,6 +114,7 @@
 				AA0200000000000000000006 /* HomeViewModel.swift */,
 				AA0200000000000000000007 /* HistoryViewModel.swift */,
 				AA0200000000000000000008 /* SettingsViewModel.swift */,
+				AA020000000000000000002A /* PlaceCheckViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -246,6 +255,9 @@
 				AA0100000000000000000025 /* OnboardingView.swift in Sources */,
 				AA0100000000000000000026 /* LocationService.swift in Sources */,
 				AA0100000000000000000027 /* NotificationScheduler.swift in Sources */,
+				AA0100000000000000000028 /* OutlookStripView.swift in Sources */,
+				AA0100000000000000000029 /* PlaceCheckView.swift in Sources */,
+				AA010000000000000000002A /* PlaceCheckViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,7 +390,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.7.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -410,7 +422,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.7.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

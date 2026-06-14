@@ -22,11 +22,15 @@ class ObserveOutlookUseCase(
     private val feedbackRepository: FeedbackRepository
 ) {
     operator fun invoke(): Flow<List<DailyOutlook>> {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
+        // Lower bound for the DB query only. The authoritative "today" used for
+        // filtering is recomputed on every emission below, so the outlook keeps
+        // advancing across midnight without needing the flow to be re-subscribed.
+        val queryFrom = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
         return combine(
-            pollenRepository.observeFromDate(today),
+            pollenRepository.observeFromDate(queryFrom),
             feedbackRepository.observeWeights()
         ) { days, weights ->
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).toString()
             val now = Clock.System.now().toEpochMilliseconds()
             days.filter { it.date > today && now - it.fetchedAt <= MAX_AGE_MS }
                 .map { RecommendationEngine.computeOutlook(it, weights ?: UserWeights()) }

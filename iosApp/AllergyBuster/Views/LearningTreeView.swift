@@ -83,7 +83,7 @@ struct LearningTreeView: View {
                 let cy = canopyTop + canopyHeight * cluster.yFrac
                 let radius = w * cluster.radiusFrac * (0.55 + 0.45 * localProgress)
                 let alpha = min(1, 0.55 + 0.45 * localProgress)
-                let color = AppTheme.lerp(AppTheme.primaryContainer, AppTheme.primary, p)
+                let color = Color.lerp(AppTheme.primaryContainer, AppTheme.primary, p)
                 let rect = CGRect(x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2)
                 context.fill(Path(ellipseIn: rect), with: .color(color.opacity(Double(alpha))))
             }

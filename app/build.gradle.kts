@@ -24,8 +24,8 @@ android {
         applicationId = "com.tarnlabs.allergybuster"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "1.7.1"
+        versionCode = 17
+        versionName = "1.7.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

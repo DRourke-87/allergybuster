@@ -28,8 +28,7 @@ import java.util.Locale
 fun OutlookStrip(
     outlook: List<DailyOutlook>,
     onDayClick: (DailyOutlook) -> Unit,
-    title: String = "Next days",
-    startsToday: Boolean = false
+    title: String = "Next days"
 ) {
     if (outlook.isEmpty()) return
 
@@ -50,10 +49,10 @@ fun OutlookStrip(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            outlook.forEachIndexed { index, day ->
+            outlook.forEach { day ->
                 OutlookDayChip(
                     day      = day,
-                    dayLabel = outlookDayLabel(index, day, startsToday),
+                    dayLabel = outlookDayLabel(day),
                     onClick  = { onDayClick(day) },
                     modifier = Modifier.weight(1f)
                 )
@@ -62,11 +61,14 @@ fun OutlookStrip(
     }
 }
 
-private fun outlookDayLabel(index: Int, day: DailyOutlook, startsToday: Boolean): String {
-    val tomorrowIndex = if (startsToday) 1 else 0
-    return when (index) {
-        tomorrowIndex - 1 -> "Today"
-        tomorrowIndex     -> "Tomorrow"
+// Labels a chip by comparing its real calendar date to the current day, so
+// "Today"/"Tomorrow" stay correct regardless of the list's contents or a day
+// rollover while the screen is open.
+private fun outlookDayLabel(day: DailyOutlook): String {
+    val today = LocalDate.now()
+    return when (day.date) {
+        today.toString()             -> "Today"
+        today.plusDays(1).toString() -> "Tomorrow"
         else -> runCatching {
             LocalDate.parse(day.date).format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
         }.getOrDefault(day.date)

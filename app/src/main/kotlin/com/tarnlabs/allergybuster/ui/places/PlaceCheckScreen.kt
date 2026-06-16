@@ -191,8 +191,7 @@ private fun PlaceOutlook(placeName: String, outlook: List<DailyOutlook>) {
         OutlookStrip(
             outlook     = outlook,
             onDayClick  = { selectedDate = it.date },
-            title       = "Pollen outlook (local days)",
-            startsToday = true
+            title       = "Pollen outlook (local days)"
         )
         selectedDay?.let { DayBreakdown(it) }
         Text(

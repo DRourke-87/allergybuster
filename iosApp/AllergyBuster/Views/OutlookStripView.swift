@@ -4,16 +4,26 @@ import shared
 struct OutlookStripView: View {
     let outlook: [DailyOutlook]
     var title: String = "Next days"
-    var startsToday: Bool = false
     let onTap: (DailyOutlook) -> Void
 
-    private func dayLabel(index: Int, day: DailyOutlook) -> String {
-        let tomorrowIndex = startsToday ? 1 : 0
-        if index == tomorrowIndex - 1 { return "Today" }
-        if index == tomorrowIndex { return "Tomorrow" }
-        let parser = DateFormatter()
-        parser.dateFormat = "yyyy-MM-dd"
-        guard let date = parser.date(from: day.date) else { return day.date }
+    private static let isoFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt
+    }()
+
+    /// Labels each chip by comparing its real calendar date to the current day,
+    /// so "Today"/"Tomorrow" stay correct regardless of the array's contents or a
+    /// day rollover while the view is alive.
+    private func dayLabel(for day: DailyOutlook) -> String {
+        let cal = Calendar.current
+        let todayString = Self.isoFormatter.string(from: Date())
+        let tomorrowString = cal.date(byAdding: .day, value: 1, to: Date())
+            .map { Self.isoFormatter.string(from: $0) }
+        if day.date == todayString { return "Today" }
+        if day.date == tomorrowString { return "Tomorrow" }
+        guard let date = Self.isoFormatter.date(from: day.date) else { return day.date }
         let fmt = DateFormatter()
         fmt.dateFormat = "EEE"
         return fmt.string(from: date)
@@ -26,8 +36,8 @@ struct OutlookStripView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.onSurfaceVariant)
                 HStack(spacing: 8) {
-                    ForEach(Array(outlook.enumerated()), id: \.element.date) { index, day in
-                        OutlookDayChip(day: day, dayLabel: dayLabel(index: index, day: day)) {
+                    ForEach(outlook, id: \.date) { day in
+                        OutlookDayChip(day: day, dayLabel: dayLabel(for: day)) {
                             onTap(day)
                         }
                     }

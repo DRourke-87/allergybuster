@@ -117,8 +117,7 @@ struct PlaceCheckView: View {
 
         OutlookStripView(
             outlook: outlook,
-            title: "Pollen outlook (local days)",
-            startsToday: true
+            title: "Pollen outlook (local days)"
         ) { day in
             selectedDate = day.date
         }

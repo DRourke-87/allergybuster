@@ -86,4 +86,24 @@ extension Color {
                 : Color(hex: light))
         })
     }
+
+    /// Linearly interpolate between two colours by `t` (0…1), mirroring Compose's
+    /// `lerp`. Resolves each endpoint per trait collection so light/dark stay correct.
+    static func lerp(_ a: Color, _ b: Color, _ t: CGFloat) -> Color {
+        let f = max(0, min(1, t))
+        return Color(UIColor { traits in
+            let ca = UIColor(a).resolvedColor(with: traits)
+            let cb = UIColor(b).resolvedColor(with: traits)
+            var ar: CGFloat = 0, ag: CGFloat = 0, ab: CGFloat = 0, aa: CGFloat = 0
+            var br: CGFloat = 0, bg: CGFloat = 0, bb: CGFloat = 0, ba: CGFloat = 0
+            ca.getRed(&ar, green: &ag, blue: &ab, alpha: &aa)
+            cb.getRed(&br, green: &bg, blue: &bb, alpha: &ba)
+            return UIColor(
+                red:   ar + (br - ar) * f,
+                green: ag + (bg - ag) * f,
+                blue:  ab + (bb - ab) * f,
+                alpha: aa + (ba - aa) * f
+            )
+        })
+    }
 }
